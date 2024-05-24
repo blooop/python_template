@@ -19,13 +19,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: prefix-dev/setup-pixi
-        # with:
-          # pixi-version: v0.22.0
-          # cache: true
-          # auth-host: prefix.dev
-          # auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
-      - run: pixi run test
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi
+        with:
+          pixi-version: v0.22.0
+          cache: true
+          auth-host: prefix.dev
+          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
       - name: Format and lint
         run: |
           pixi run fmt
