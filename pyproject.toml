@@ -42,7 +42,10 @@ default = { solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 
 [tool.pixi.feature.test.tasks]
+fmt = "black ."
+lint = "ruff check . --fix ; pylint $(git ls-files '*.py')"
 test = "pytest"
+coverage = "run -m pytest"
 
 [project.urls]
 Source = "https://github.com/blooop/python_template"
