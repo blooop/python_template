@@ -20,6 +20,16 @@ python_template = { path = ".", editable = true }
 
 [tool.pixi.tasks]
 
+[tool.pixi.feature.test.tasks]
+fmt = "black ."
+lint = "ruff check . --fix ; pylint $(git ls-files '*.py')"
+test = "pytest"
+coverage = "run -m pytest"
 
 [tool.setuptools.packages.find]
 include= ["python_template"]
+
+# Environments
+[tool.pixi.environments]
+default = { solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
