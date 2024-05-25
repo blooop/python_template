@@ -1,4 +1,15 @@
+[project]
+name = "python_template"
+version = "1.0.0"
+description = "A python package template"
+authors = [{name = "Austin Gregg-Smith", email = "blooop@gmail.com"}]
+requires-python = ">=3.10"
+readme = "README.md"
+dependencies = []
 
+[project.urls]
+Source = "https://github.com/blooop/python_template"
+Home = "https://github.com/blooop/python_template"
 
 [build-system]
 requires = ["setuptools"]
