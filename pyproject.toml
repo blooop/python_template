@@ -36,6 +36,7 @@ test = [
 ]
 
 [tool.pixi.tasks]
+pr = "pixi install; git commit -a -m'update pixi.lock'"
 
 [tool.pixi.feature.test.tasks]
 fmt = "black ."
@@ -50,3 +51,7 @@ include= ["python_template"]
 [tool.pixi.environments]
 default = { solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
+
+[tool.pylint]
+extension-pkg-whitelist = ["numpy"]
+jobs = 16                           #detect number of cores
