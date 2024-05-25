@@ -36,7 +36,7 @@ test = [
 ]
 
 [tool.pixi.tasks]
-pr = "pixi install; git commit -a -m'update pixi.lock'"
+pr = "pixi install; git commit -a -m'update pixi.lock';git push"
 
 [tool.pixi.feature.test.tasks]
 fmt = "black ."
