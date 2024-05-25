@@ -600,7 +600,7 @@ packages:
   name: python-template
   version: 1.0.0
   path: .
-  sha256: 566bba4b577d7d7736dd5d6a33321f85ccf6c5f00a10d22a67096e18e9611938
+  sha256: 845d501f0186ddfa3798098407c07394476a434da9a9002ed62bd216001bb232
   requires_dist:
   - black ; extra == 'test'
   - pylint ; extra == 'test'
