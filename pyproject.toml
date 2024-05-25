@@ -1,9 +1,10 @@
 [project]
 name = "python_template"
-version = "0.1.0"
-description = "Add a short description here"
+version = "1.0.0"
+description = "A python package template"
 authors = [{name = "Austin Gregg-Smith", email = "blooop@gmail.com"}]
-requires-python = ">= 3.10"
+requires-python = ">=3.10"
+readme = "README.md"
 dependencies = []
 
 [build-system]
