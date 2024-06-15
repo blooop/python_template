@@ -168,3 +168,5 @@ log/**
 .pixi
 *.egg-info
 
+test_suite_analysis/metadata.json
+managed_context/metadata.json
