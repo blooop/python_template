@@ -1,13 +1,12 @@
 apt_sources:
   - curl
+  - ca-certificates
 
 apt_tools:
   - git
   - git-lfs
   - apt-utils
   - jq
-
-
 
 script_pixi-user:
   - scripts/install_pixi.sh
