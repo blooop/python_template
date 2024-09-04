@@ -49,7 +49,21 @@ else
 fi
 
 # Run the rocker command with the specified parameters
-rocker --nvidia --x11 --user --pull --git --image-name "$CONTAINER_NAME" --name "$CONTAINER_NAME" --volume "${PWD}":/workspaces/"${CONTAINER_NAME}":Z --deps --oyr-run-arg " --detach" ubuntu:22.04 "$@" 
+rocker --nvidia --x11 --user --pull --git --image-name "$CONTAINER_NAME" --name "$CONTAINER_NAME" --volume "${PWD}":/workspaces/"${CONTAINER_NAME}":Z --env XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR --volume $XDG_RUNTIME_DIR:$XDG_RUNTIME_DIR --privileged --port 9876 --deps --oyr-run-arg " --detach" minedojo/minedojo:latest "$@" 
+
+# 
+# https://github.com/rerun-io/rerun/issues/6835
+# Thanks for your instructions, I made significant progress in running rerun from a docker after adding:
+
+# `libgtk-3-dev libxkbcommon-x11-0 vulkan-tools` from your post and after adding `mesa-vulkan-drivers` I was able to load the window.
+
+# It loads now, but is using the software renderer and still has some warnings:
+
+# ```
+# [2024-08-16T17:48:59Z WARN  wgpu_hal::gles::egl] No config found!
+# [2024-08-16T17:48:59Z WARN  wgpu_hal::gles::egl] EGL says it can present to the window but not natively
+# [2024-08-16T17:48:59Z WARN  re_renderer::context] Bad software rasterizer detected - expect poor performance and crashes. See: https://www.rerun.io/docs/getting-started/troubleshooting#graphics-issues
+# ```
 
 deactivate
 
