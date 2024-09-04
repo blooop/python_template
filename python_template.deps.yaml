@@ -12,5 +12,14 @@ pip_language-toolchain:
   - flit #pixi autocomplete does not work with this removed, #TODO fix
   - pip #updates to latest pip
 
+apt_pipx:
+  - pipx
+
+pip:
+  - rerun-sdk
+
+apt_rerun:
+  - libgtk-3-dev libxkbcommon-x11-0 vulkan-tools mesa-vulkan-drivers
+
 script_pixi-user:
   - scripts/install_pixi.sh
