@@ -13,7 +13,6 @@ updates:
       dev-dependencies:
         #try to group all development dependencies updates into a single pr
         patterns:          
-          - "black"
           - "check-manifest"
           - "pre-commit"
           - "pylint"

@@ -5,7 +5,6 @@ This has basic setup for
 
 * pylint
 * ruff
-* black
 * pytest
 * codecov
 * git-lfs
