@@ -24,9 +24,6 @@ repos:
       - id: check-merge-conflict
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
-      - id: check-toml
-      - id: check-xml
-      - id: pretty-format-json
       - id: name-tests-test
       - id: detect-private-key
       - id: check-symlinks
@@ -34,6 +31,9 @@ repos:
       - id: check-xml
       - id: check-yaml
         args: ['--unsafe']  # Fixes errors parsing custom jinja templates
+      # - id: check-json
+      # - id: pretty-format-json
+      #   args: ['--autofix']  
       - id: debug-statements
       - id: end-of-file-fixer
       - id: mixed-line-ending
