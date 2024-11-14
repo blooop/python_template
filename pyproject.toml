@@ -61,6 +61,7 @@ py313 = ["py313","test"]
 
 [tool.pixi.tasks]
 pre-commit = "pre-commit run -a"
+pre-commit-update = "pre-commit autoupdate"
 format = "ruff format ."
 check-clean-workspace = "git diff --exit-code"
 ruff-lint = "ruff check . --fix"

@@ -481,7 +481,7 @@ packages:
   sha256: d30271214eae0d4758b72b408e9777405c7c7f687e14e8a42853adea887b2891
   requires_dist:
   - attrs>=22.2.0
-  - sortedcontainers<3.0.0,>=2.1.0
+  - sortedcontainers>=2.1.0,<3.0.0
   - exceptiongroup>=1.0.0 ; python_full_version < '3.11'
   - black>=19.10b0 ; extra == 'all'
   - click>=7.0 ; extra == 'all'
@@ -838,9 +838,9 @@ packages:
   sha256: 2f846a466dd023513240bc140ad2dd73bfc080a5d85a710afdb728c420a5a2b9
   requires_dist:
   - platformdirs>=2.2.0
-  - astroid<=3.4.0.dev0,>=3.3.4
-  - isort!=5.13.0,<6,>=4.2.5
-  - mccabe<0.8,>=0.6
+  - astroid>=3.3.4,<=3.4.0.dev0
+  - isort>=4.2.5,!=5.13.0,<6
+  - mccabe>=0.6,<0.8
   - tomlkit>=0.10.1
   - typing-extensions>=3.10.0 ; python_full_version < '3.10'
   - dill>=0.2 ; python_full_version < '3.11'
@@ -859,7 +859,7 @@ packages:
   requires_dist:
   - iniconfig
   - packaging
-  - pluggy<2,>=1.5
+  - pluggy>=1.5,<2
   - exceptiongroup>=1.0.0rc8 ; python_full_version < '3.11'
   - tomli>=1 ; python_full_version < '3.11'
   - colorama ; sys_platform == 'win32'
@@ -1018,7 +1018,7 @@ packages:
   name: python-template
   version: 0.2.0
   path: .
-  sha256: 6e16646f911f4286d35c91414887dc4d4b20303e5e33c45ddad3e671bab7a739
+  sha256: e40291388966efb5015d3a9758e2c4e00bec48ced6ad6db8b00a05422b242d0d
   requires_dist:
   - pylint>=3.2.5,<=3.3.1 ; extra == 'test'
   - pytest-cov>=4.1,<=6.0.0 ; extra == 'test'
@@ -1150,13 +1150,13 @@ packages:
   url: https://files.pythonhosted.org/packages/ae/92/78324ff89391e00c8f4cf6b8526c41c6ef36b4ea2d2c132250b1a6fc2b8d/virtualenv-20.27.1-py3-none-any.whl
   sha256: f11f1b8a29525562925f745563bfd48b189450f61fb34c4f9cc79dd5aa32a1f4
   requires_dist:
-  - distlib<1,>=0.3.7
-  - filelock<4,>=3.12.2
+  - distlib>=0.3.7,<1
+  - filelock>=3.12.2,<4
   - importlib-metadata>=6.6 ; python_full_version < '3.8'
-  - platformdirs<5,>=3.9.1
+  - platformdirs>=3.9.1,<5
   - furo>=2023.7.26 ; extra == 'docs'
   - proselint>=0.13 ; extra == 'docs'
-  - sphinx!=7.3,>=7.1.2 ; extra == 'docs'
+  - sphinx>=7.1.2,!=7.3 ; extra == 'docs'
   - sphinx-argparse>=0.4 ; extra == 'docs'
   - sphinxcontrib-towncrier>=0.2.1a0 ; extra == 'docs'
   - towncrier>=23.6 ; extra == 'docs'
