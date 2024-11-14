@@ -34,7 +34,6 @@ python_template = { path = ".", editable = true }
 
 [project.optional-dependencies]
 test = [
-  "black>=23,<=24.10.0",
   "pylint>=3.2.5,<=3.3.1",
   "pytest-cov>=4.1,<=6.0.0",
   "pytest>=7.4,<=8.3.3",
@@ -62,7 +61,7 @@ py313 = ["py313","test"]
 
 [tool.pixi.tasks]
 pre-commit = "pre-commit run -a"
-format = "black ."
+format = "ruff format ."
 check-clean-workspace = "git diff --exit-code"
 ruff-lint = "ruff check . --fix"
 pylint = "pylint --version && echo 'running pylint...' && pylint $(git ls-files '*.py')"
