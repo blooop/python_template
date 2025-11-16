@@ -61,32 +61,27 @@ py313 = ["py313", "test"]
 
 
 [tool.pixi.tasks]
-pre-commit = "pre-commit run -a"
-pre-commit-update = "pre-commit autoupdate"
+# Formatting and linting
 format = "ruff format ."
-check-clean-workspace = "git diff --exit-code"
 ruff-lint = "ruff check . --fix"
 pylint = "pylint --version && echo 'running pylint...' && pylint $(git ls-files '*.py')"
 lint = { depends-on = ["ruff-lint", "pylint"] }
 style = { depends-on = ["format", "lint"] }
-commit-format = "git commit -a -m'autoformat code' || true"
+
+# Testing
 test = "pytest"
 coverage = "coverage run -m pytest && coverage xml -o coverage.xml"
 coverage-report = "coverage report -m"
-update-lock = "pixi update && git commit -a -m'update pixi.lock' || true"
-push = "git push"
-update-lock-push = { depends-on = ["update-lock", "push"] }
-fix = { depends-on = ["update-lock", "format", "ruff-lint", "pre-commit"] }
-fix-commit-push = { depends-on = ["fix", "commit-format", "update-lock-push"] }
-ci-no-cover = { depends-on = ["style", "test"] }
-ci = { depends-on = [
-  "format",
-  "ruff-lint",
-  "pylint",
-  "coverage",
-  "coverage-report",
-] }
-ci-push = { depends-on = ["format", "ruff-lint", "update-lock", "ci", "push"] }
+
+# CI workflow
+ci = { depends-on = ["style", "coverage", "coverage-report"] }
+
+# Pre-commit hooks
+pre-commit = "pre-commit run -a"
+pre-commit-update = "pre-commit autoupdate"
+
+# Utility tasks
+update-lock = "pixi update"
 clear-pixi = "rm -rf .pixi pixi.lock"
 setup-git-merge-driver = "git config merge.ourslock.driver true"
 update-from-template-repo = "./scripts/update_from_template.sh"
