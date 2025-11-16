@@ -51,8 +51,15 @@ docker run hello-world
 echo "you may need to restart your machine"
 
 #INSTALL PIXI
-curl -fsSL https://pixi.sh/install.sh | bash
-echo 'eval "$(pixi completion --shell bash)"' >> ~/.bashrc
+# Use common setup function if available, otherwise install directly
+if [ -f "$(dirname "$0")/../.claude/setup-common.sh" ]; then
+    source "$(dirname "$0")/../.claude/setup-common.sh"
+    install_pixi
+    echo 'eval "$(pixi completion --shell bash)"' >> ~/.bashrc
+else
+    curl -fsSL https://pixi.sh/install.sh | bash
+    echo 'eval "$(pixi completion --shell bash)"' >> ~/.bashrc
+fi
 
 #INSTALL UV
 curl -LsSf https://astral.sh/uv/install.sh | sh

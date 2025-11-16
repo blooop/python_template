@@ -2,9 +2,25 @@
 
 This directory contains configuration for using this project with Claude Code, particularly in the online environment.
 
+## Files
+
+- `setup-common.sh` - Shared setup functions used by SessionStart, devcontainer, and other setup scripts
+- `activate.sh` - Manual activation script to add pixi to PATH
+- `hooks/SessionStart` - Automatic setup hook for Claude Code online sessions
+
+## Setup Architecture
+
+The setup is consolidated using shared functions in `setup-common.sh`:
+
+- `install_pixi()` - Installs pixi package manager
+- `install_dependencies()` - Installs project dependencies via pixi
+- `setup_pre_commit()` - Configures pre-commit hooks
+- `setup_git_merge_driver()` - Sets up git merge driver for lockfiles
+- `setup_environment()` - Runs all setup steps
+
 ## SessionStart Hook
 
-The `hooks/SessionStart` script automatically runs when a new Claude Code session begins. It:
+The `hooks/SessionStart` script automatically runs when a new Claude Code session begins. It sources `setup-common.sh` and executes the full environment setup:
 
 1. **Installs pixi** (if not already installed) - The package and environment manager
 2. **Installs project dependencies** - All Python packages and tools defined in `pyproject.toml`

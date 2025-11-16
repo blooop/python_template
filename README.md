@@ -38,8 +38,13 @@ If you are using pixi, look at the available tasks in pyproject.toml  If you are
 
 # Claude Code Online Support
 
-This template includes built-in support for [Claude Code](https://docs.claude.com/claude-code) online environment! The `.claude/hooks/SessionStart` script automatically:
+This template includes built-in support for [Claude Code](https://docs.claude.com/claude-code) online environment! The setup is consolidated using shared scripts:
 
+- `.claude/setup-common.sh` - Shared setup functions used across different environments
+- `.claude/hooks/SessionStart` - Automatic setup hook for Claude Code online
+- `.claude/activate.sh` - Manual activation script
+
+The SessionStart hook automatically:
 - Installs pixi package manager
 - Sets up all project dependencies
 - Configures pre-commit hooks
