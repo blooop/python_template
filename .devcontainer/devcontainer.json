@@ -11,13 +11,12 @@
         "vscode": {
             "settings": {},
             "extensions": [
-                "jjjermiah.pixi-vscode",
                 "ms-python.python",
+                "ms-python.vscode-pylance",
+                "jjjermiah.pixi-vscode",
                 "charliermarsh.ruff",
                 "tamasfe.even-better-toml",
-                "mhutchie.git-graph",
-                "GitHub.copilot",
-                "ryanluker.vscode-coverage-gutters"
+                "mhutchie.git-graph"
               ]
         }
     },
