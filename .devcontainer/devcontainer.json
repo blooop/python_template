@@ -4,7 +4,7 @@
         "dockerfile": "Dockerfile",
         "context": "..",
         "args": {
-            "PIXI_VERSION": "v0.48.2"
+            "PIXI_VERSION": "v0.62.2"
         }
     },
     "customizations": {
@@ -22,7 +22,10 @@
         }
     },
 	"features": {
-		"ghcr.io/devcontainers/features/common-utils:2": {},
+        // "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+		// "ghcr.io/devcontainers/features/common-utils:2": {},
+		// "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+		// "ghcr.io/jsburckhardt/devcontainer-features/codex:latest": {}
     },
     "mounts": [
         "source=${localWorkspaceFolderBasename}-pixi,target=${containerWorkspaceFolder}/.pixi,type=volume"
