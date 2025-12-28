@@ -378,7 +378,7 @@ If issues persist:
 
 ## References
 
-- Dev Container Features: https://containers.dev/implementors/features/
+- Dev Container Features: https://containers.dev/implementers/features/
 - Claude Code Docs: https://code.claude.com/docs/
 - deps_rocker reference: https://github.com/blooop/deps_rocker
 - OAuth callback issue: https://github.com/anthropics/claude-code/issues/1529

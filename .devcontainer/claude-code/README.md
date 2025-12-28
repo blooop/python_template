@@ -452,8 +452,8 @@ See issues:
 
 ## Reference
 
-- **Dev Container Features Spec**: https://containers.dev/implementors/features/
-- **Local Features**: https://containers.dev/implementors/features/#local-features
+- **Dev Container Features Spec**: https://containers.dev/implementers/features/
+- **Local Features**: https://containers.dev/implementers/features/#local-features
 - **Based on PR**: https://github.com/anthropics/devcontainer-features/pull/25
 - **Upstream Features**: https://github.com/anthropics/devcontainer-features
 
