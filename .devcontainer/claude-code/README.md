@@ -33,15 +33,20 @@ These are **read-only** (`ro` flag) to prevent:
 
 ### Read-Write Mounts (Authentication & State)
 - `~/.claude/.credentials.json` → OAuth access/refresh tokens
-- `~/.claude/.claude.json` → Account info, user ID, cached configs
+- `~/.claude/.claude.json` → Account info, user ID, workspace setup tracking
 
-These files are **writable** to enable:
-- OAuth authentication flow in the container
-- Account state sharing between host and container
-- Persistent authentication across container rebuilds
-- Session continuity (no re-login required)
+These files **must be writable** to enable:
+- OAuth authentication flow and token refresh
+- Workspace setup state tracking (`projectOnboardingSeenCount`)
+- Session continuity across container rebuilds
 
-⚠️ **Security Note**: While these files are mounted read-write, they are only accessible by the container user and stored securely with `600` permissions. Only use this feature with trusted repositories.
+### Why These Must Be Writable
+
+**`.credentials.json`**: OAuth tokens need to be refreshed periodically. Claude writes updated tokens to this file.
+
+**`.claude.json`**: Claude tracks per-workspace setup state here. The `projectOnboardingSeenCount` field must be writable so Claude doesn't show the setup wizard on every launch.
+
+⚠️ **Security Note**: These files contain sensitive data and are mounted read-write by necessity. They are only accessible by the container user and stored with `600` permissions. Only use this feature with trusted repositories.
 
 ## Usage
 
@@ -221,6 +226,29 @@ The OAuth flow opens a local callback server. In containers, this can behave dif
 **Credentials not persisting:**
 - Ensure the `.credentials.json` file exists on your host before rebuilding
 - Check file permissions: `chmod 600 ~/.claude/.credentials.json`
+
+**Setup wizard runs on every rebuild (theme selection, OAuth):**
+
+This happens because Claude tracks setup completion **per-workspace**, not globally.
+
+**Quick fix:**
+```bash
+# On your HOST machine:
+# Set the onboarding flag for your workspace
+jq '.projects["/workspaces/pythontemplate"].projectOnboardingSeenCount = 1' ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
+mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
+
+# Also ensure themeMode is set (if needed)
+jq '. + {themeMode: "dark"}' ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
+mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
+
+# Rebuild container
+devpod up . --recreate
+```
+
+**Root cause:** Claude tracks setup wizard completion per-workspace in `.claude.json` under `.projects["/workspaces/pythontemplate"].projectOnboardingSeenCount`. When this is `0`, the setup wizard runs. Set it to `1` to mark setup as complete.
+
+**For future workspaces:** Replace `/workspaces/pythontemplate` with your actual container workspace path.
 
 ## Modifying Configuration
 
