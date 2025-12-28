@@ -440,15 +440,33 @@ touch ~/.claude/CLAUDE.md ~/.claude/settings.json
 
 ## Security Notes
 
-Based on [PR #25](https://github.com/anthropics/devcontainer-features/pull/25):
+This implementation makes conscious security trade-offs to enable OAuth authentication and persistent setup state:
 
-- **Read-Only Mounts**: Prevents prompt injection attacks that could modify CLAUDE.md or hooks
-- **No Credential Mounts**: `.credentials.json` is NOT mounted to prevent key exfiltration
-- **Isolated Configuration**: Each container uses host config but cannot modify it
+### What's Protected (Read-Only Mounts)
+- **CLAUDE.md**: Prevents prompt injection attacks that could modify your global instructions
+- **settings.json**: Prevents config tampering
+- **agents/**, **commands/**, **hooks/**: Prevents malicious code execution through modified hooks
 
-See issues:
+### What's Writable (Necessary Trade-off)
+- **`.credentials.json`**: OAuth tokens must be writable for token refresh to work
+- **`.claude.json`**: Workspace state must be writable to persist `projectOnboardingSeenCount` and other setup tracking
+
+### Security Mitigations
+- Files have `600` permissions (user-only access)
+- Only use this feature in **trusted repositories**
+- Container user isolation provides some protection
+- Writable files are limited to authentication/state only
+- All configuration and code execution files remain read-only
+
+### Known Risks
+- A malicious process in the container could exfiltrate OAuth tokens from `.credentials.json`
+- A malicious process could modify workspace state in `.claude.json`
+- **Recommendation**: Only use in repositories you trust, as you would with any dev container configuration
+
+See related security discussions:
 - [anthropics/claude-code#4478](https://github.com/anthropics/claude-code/issues/4478)
 - [anthropics/claude-code#2350](https://github.com/anthropics/claude-code/issues/2350)
+- Original read-only approach: [PR #25](https://github.com/anthropics/devcontainer-features/pull/25)
 
 ## Reference
 
