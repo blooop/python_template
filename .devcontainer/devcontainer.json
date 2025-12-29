@@ -2,10 +2,7 @@
     "name": "python_template",
     "build": {
         "dockerfile": "Dockerfile",
-        "context": "..",
-        "args": {
-            "PIXI_VERSION": "v0.62.2"
-        }
+        "context": ".."
     },
     "customizations": {
         "vscode": {
@@ -21,7 +18,7 @@
         }
     },
 	"features": {
-		"ghcr.io/devcontainers/features/node:1": {},
+		// "ghcr.io/devcontainers/features/node:1": {},
 		"./claude-code": {}
         // "ghcr.io/devcontainers/features/docker-in-docker:2": {}
 		// "ghcr.io/devcontainers/features/common-utils:2": {},
