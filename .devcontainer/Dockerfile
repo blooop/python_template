@@ -11,3 +11,6 @@ USER vscode
 WORKDIR /home/vscode
 
 RUN echo 'eval "$(pixi completion -s bash)"' >> /home/vscode/.bashrc
+
+# Create .ssh directory with proper permissions for SSH config mounts
+RUN mkdir -p /home/vscode/.ssh && chmod 700 /home/vscode/.ssh
