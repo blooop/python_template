@@ -1,6 +1,6 @@
 {
   "recommendations": [
-    "tamasfe.even-better-toml",
+      "tamasfe.even-better-toml",
       "ms-python.python",
       "ms-python.vscode-pylance",
       "jjjermiah.pixi-vscode",
