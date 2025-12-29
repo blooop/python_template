@@ -53,17 +53,21 @@ create_claude_directories() {
     local target_home="${_REMOTE_USER_HOME:-/home/${target_user}}"
 
     # Be defensive: if the resolved home does not exist, fall back to $HOME,
-    # then to /home/${target_user}, and finally to /tmp as a last resort.
+    # then to /home/${target_user}. If neither is available, fail clearly.
     if [ ! -d "$target_home" ]; then
         if [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
-            echo "Warning: target_home '$target_home' does not exist, falling back to \$HOME: $HOME"
+            echo "Warning: target_home '$target_home' does not exist, falling back to \$HOME: $HOME" >&2
             target_home="$HOME"
         elif [ -d "/home/${target_user}" ]; then
-            echo "Warning: target_home '$target_home' does not exist, falling back to /home/${target_user}"
+            echo "Warning: target_home '$target_home' does not exist, falling back to /home/${target_user}" >&2
             target_home="/home/${target_user}"
         else
-            echo "Warning: No suitable home directory found for '${target_user}', falling back to /tmp"
-            target_home="/tmp"
+            echo "Error: No suitable home directory found for '${target_user}'. Tried:" >&2
+            echo "  - _REMOTE_USER_HOME='${_REMOTE_USER_HOME:-}'" >&2
+            echo "  - \$HOME='${HOME:-}'" >&2
+            echo "  - /home/${target_user}" >&2
+            echo "Please set _REMOTE_USER_HOME to a valid, writable directory." >&2
+            exit 1
         fi
     fi
 
