@@ -9,14 +9,13 @@ set -eu
 install_claude_code() {
     echo "Installing Claude Code CLI globally..."
 
-    # Verify Node.js and npm are available
+    # Verify Node.js and npm are available (should be installed via dependsOn)
     if ! command -v node >/dev/null || ! command -v npm >/dev/null; then
         cat <<EOF
 
 ERROR: Node.js and npm are required but not found!
 
-This should not happen as the Node.js feature is automatically installed
-via the 'installsAfter' mechanism in devcontainer-feature.json.
+This should not happen as the Node.js feature is declared in 'dependsOn'.
 
 Please check:
 1. The devcontainer feature specification is correct
