@@ -39,5 +39,6 @@
         "source=${localEnv:HOME}/.ssh/known_hosts,target=/home/vscode/.ssh/known_hosts,type=bind,ro",
         "source=${localEnv:HOME}/.ssh/config,target=/home/vscode/.ssh/config,type=bind,ro"
     ],
+    "initializeCommand": "bash -c 'mkdir -p ${HOME}/.claude/agents ${HOME}/.claude/commands ${HOME}/.claude/hooks && for f in CLAUDE.md settings.json .claude.json .credentials.json; do [ ! -f ${HOME}/.claude/$f ] && touch ${HOME}/.claude/$f || true; done'",
     "postCreateCommand": "sudo chown vscode .pixi && pixi install"
 }
