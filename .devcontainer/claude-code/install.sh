@@ -82,7 +82,6 @@ install_claude_code() {
     fi
 
     # Add pixi bin path to user's profile if not already there
-    # Only add ~/.pixi/bin - avoid hardcoding env-specific paths that may change
     local profile="$TARGET_HOME/.profile"
     local pixi_path_line='export PATH="$HOME/.pixi/bin:$PATH"'
     if [ -f "$profile" ] && ! grep -q '\.pixi/bin' "$profile"; then
@@ -92,12 +91,20 @@ install_claude_code() {
         chown "$TARGET_USER:$TARGET_USER" "$profile" 2>/dev/null || true
     fi
 
-    # Verify installation by checking the binary exists
+    # Workaround: pixi trampoline fails for bash scripts, so add env bin directly
+    # This conditionally adds the path only if the env exists
+    local env_path_line='[ -d "$HOME/.pixi/envs/claude-shim/bin" ] && export PATH="$HOME/.pixi/envs/claude-shim/bin:$PATH"'
+    if [ -f "$profile" ] && ! grep -q 'pixi/envs/claude-shim' "$profile"; then
+        echo "# Workaround: pixi trampoline fails for bash scripts" >> "$profile"
+        echo "$env_path_line" >> "$profile"
+    fi
+
+    # Verify installation by checking the trampoline exists (don't run it - that triggers download)
     local pixi_bin_path="$TARGET_HOME/.pixi/bin"
     local claude_bin="$pixi_bin_path/claude"
     if [ -x "$claude_bin" ]; then
         echo "Claude Code CLI installed successfully!"
-        "$claude_bin" --version
+        echo "(Claude binary will be downloaded on first run)"
         return 0
     else
         echo "ERROR: Claude Code CLI installation failed! Binary not found at $claude_bin"
@@ -154,7 +161,6 @@ main() {
     # Install Claude Code CLI
     if [ -x "$claude_bin" ]; then
         echo "Claude Code CLI is already installed"
-        "$claude_bin" --version
     else
         install_claude_code || exit 1
     fi
