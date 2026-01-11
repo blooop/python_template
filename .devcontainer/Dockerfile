@@ -10,7 +10,8 @@ RUN curl -L -o /usr/local/bin/pixi -fsSL --compressed "https://github.com/prefix
 USER vscode
 WORKDIR /home/vscode
 
-RUN echo 'eval "$(pixi completion -s bash)"' >> /home/vscode/.bashrc
+RUN echo 'eval "$(pixi completion -s bash)"' >> /home/vscode/.bashrc \
+    && echo 'export PATH="$HOME/.pixi/envs/claude-shim/bin:$HOME/.pixi/bin:$PATH"' >> /home/vscode/.profile
 
 # Create .ssh directory with proper permissions for SSH config mounts
 RUN mkdir -p /home/vscode/.ssh && chmod 700 /home/vscode/.ssh
