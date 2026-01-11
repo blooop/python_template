@@ -4,6 +4,7 @@
         "dockerfile": "Dockerfile",
         "context": ".."
     },
+    "initializeCommand": ".devcontainer/claude-code/init-host.sh",
     "customizations": {
         "vscode": {
             "settings": {},
