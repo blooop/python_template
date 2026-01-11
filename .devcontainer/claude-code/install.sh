@@ -4,6 +4,44 @@ set -eu
 # Claude Code CLI Local Feature Install Script
 # Installs Claude Code via pixi and sets up configuration directories
 
+# Global variables set by resolve_target_home
+TARGET_USER=""
+TARGET_HOME=""
+
+# Function to resolve target user and home directory with validation
+# Sets TARGET_USER and TARGET_HOME global variables
+resolve_target_home() {
+    TARGET_USER="${_REMOTE_USER:-vscode}"
+    TARGET_HOME="${_REMOTE_USER_HOME:-}"
+
+    # If _REMOTE_USER_HOME is not set, try to infer from current user or /home/<user>
+    if [ -z "${TARGET_HOME}" ]; then
+        if [ "$(id -un 2>/dev/null)" = "${TARGET_USER}" ] && [ -n "${HOME:-}" ]; then
+            TARGET_HOME="${HOME}"
+        elif [ -d "/home/${TARGET_USER}" ]; then
+            TARGET_HOME="/home/${TARGET_USER}"
+        fi
+    fi
+
+    # If TARGET_HOME is set but doesn't exist, try fallbacks
+    if [ -n "${TARGET_HOME}" ] && [ ! -d "${TARGET_HOME}" ]; then
+        if [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
+            echo "Warning: TARGET_HOME '${TARGET_HOME}' does not exist, falling back to \$HOME: $HOME" >&2
+            TARGET_HOME="$HOME"
+        elif [ -d "/home/${TARGET_USER}" ]; then
+            echo "Warning: TARGET_HOME '${TARGET_HOME}' does not exist, falling back to /home/${TARGET_USER}" >&2
+            TARGET_HOME="/home/${TARGET_USER}"
+        fi
+    fi
+
+    # Ensure we ended up with a valid, existing home directory
+    if [ -z "${TARGET_HOME}" ] || [ ! -d "${TARGET_HOME}" ]; then
+        echo "Error: could not determine a valid home directory for user '${TARGET_USER}'." >&2
+        echo "Checked _REMOTE_USER_HOME ('${_REMOTE_USER_HOME:-}'), \$HOME ('${HOME:-}'), and /home/${TARGET_USER}." >&2
+        exit 1
+    fi
+}
+
 # Function to install pixi if not found
 install_pixi() {
     echo "Installing pixi..."
@@ -32,30 +70,30 @@ install_claude_code() {
         install_pixi
     fi
 
-    # Determine target user for pixi global install
-    local target_user="${_REMOTE_USER:-vscode}"
-    local target_home="${_REMOTE_USER_HOME:-/home/${target_user}}"
+    # Resolve target user and home (sets TARGET_USER and TARGET_HOME)
+    resolve_target_home
 
     # Install with pixi global from blooop channel
     # Run as target user so it installs to their home directory
-    if [ "$(id -u)" -eq 0 ] && [ "$target_user" != "root" ]; then
-        su - "$target_user" -c "pixi global install --channel https://prefix.dev/blooop claude-shim"
+    if [ "$(id -u)" -eq 0 ] && [ "$TARGET_USER" != "root" ]; then
+        su - "$TARGET_USER" -c "pixi global install --channel https://prefix.dev/blooop claude-shim"
     else
         pixi global install --channel https://prefix.dev/blooop claude-shim
     fi
 
-    # Add pixi paths to user's profile if not already there
-    local profile="$target_home/.profile"
-    local pixi_path_line='export PATH="$HOME/.pixi/envs/claude-shim/bin:$HOME/.pixi/bin:$PATH"'
-    if [ -f "$profile" ] && ! grep -q "\.pixi/envs/claude-shim/bin" "$profile"; then
+    # Add pixi bin path to user's profile if not already there
+    # Only add ~/.pixi/bin - avoid hardcoding env-specific paths that may change
+    local profile="$TARGET_HOME/.profile"
+    local pixi_path_line='export PATH="$HOME/.pixi/bin:$PATH"'
+    if [ -f "$profile" ] && ! grep -q '\.pixi/bin' "$profile"; then
         echo "$pixi_path_line" >> "$profile"
     elif [ ! -f "$profile" ]; then
         echo "$pixi_path_line" > "$profile"
-        chown "$target_user:$target_user" "$profile" 2>/dev/null || true
+        chown "$TARGET_USER:$TARGET_USER" "$profile" 2>/dev/null || true
     fi
 
     # Verify installation by checking the binary exists
-    local pixi_bin_path="$target_home/.pixi/bin"
+    local pixi_bin_path="$TARGET_HOME/.pixi/bin"
     local claude_bin="$pixi_bin_path/claude"
     if [ -x "$claude_bin" ]; then
         echo "Claude Code CLI installed successfully!"
@@ -71,47 +109,32 @@ install_claude_code() {
 create_claude_directories() {
     echo "Creating Claude configuration directories..."
 
-    # Determine the target user's home directory
-    local target_user="${_REMOTE_USER:-vscode}"
-    local target_home="${_REMOTE_USER_HOME:-/home/${target_user}}"
+    # Resolve target user and home (sets TARGET_USER and TARGET_HOME)
+    resolve_target_home
 
-    # Be defensive: if the resolved home does not exist, fall back
-    if [ ! -d "$target_home" ]; then
-        if [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
-            echo "Warning: target_home '$target_home' does not exist, falling back to \$HOME: $HOME" >&2
-            target_home="$HOME"
-        elif [ -d "/home/${target_user}" ]; then
-            echo "Warning: target_home '$target_home' does not exist, falling back to /home/${target_user}" >&2
-            target_home="/home/${target_user}"
-        else
-            echo "Error: No suitable home directory found for '${target_user}'." >&2
-            exit 1
-        fi
-    fi
-
-    echo "Target home directory: $target_home"
-    echo "Target user: $target_user"
+    echo "Target home directory: $TARGET_HOME"
+    echo "Target user: $TARGET_USER"
 
     # Create the main .claude directory and subdirectories
-    mkdir -p "$target_home/.claude"
-    mkdir -p "$target_home/.claude/agents"
-    mkdir -p "$target_home/.claude/commands"
-    mkdir -p "$target_home/.claude/hooks"
+    mkdir -p "$TARGET_HOME/.claude"
+    mkdir -p "$TARGET_HOME/.claude/agents"
+    mkdir -p "$TARGET_HOME/.claude/commands"
+    mkdir -p "$TARGET_HOME/.claude/hooks"
 
     # Create empty config files if they don't exist
-    if [ ! -f "$target_home/.claude/.credentials.json" ]; then
-        echo "{}" > "$target_home/.claude/.credentials.json"
-        chmod 600 "$target_home/.claude/.credentials.json"
+    if [ ! -f "$TARGET_HOME/.claude/.credentials.json" ]; then
+        echo "{}" > "$TARGET_HOME/.claude/.credentials.json"
+        chmod 600 "$TARGET_HOME/.claude/.credentials.json"
     fi
 
-    if [ ! -f "$target_home/.claude/.claude.json" ]; then
-        echo "{}" > "$target_home/.claude/.claude.json"
-        chmod 600 "$target_home/.claude/.claude.json"
+    if [ ! -f "$TARGET_HOME/.claude/.claude.json" ]; then
+        echo "{}" > "$TARGET_HOME/.claude/.claude.json"
+        chmod 600 "$TARGET_HOME/.claude/.claude.json"
     fi
 
     # Set proper ownership
     if [ "$(id -u)" -eq 0 ]; then
-        chown -R "$target_user:$target_user" "$target_home/.claude" || true
+        chown -R "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.claude" || true
     fi
 
     echo "Claude directories created successfully"
@@ -123,10 +146,10 @@ main() {
     echo "Activating feature 'claude-code' (local)"
     echo "========================================="
 
-    # Determine target paths
-    local target_user="${_REMOTE_USER:-vscode}"
-    local target_home="${_REMOTE_USER_HOME:-/home/${target_user}}"
-    local claude_bin="$target_home/.pixi/bin/claude"
+    # Resolve target user and home (sets TARGET_USER and TARGET_HOME)
+    resolve_target_home
+
+    local claude_bin="$TARGET_HOME/.pixi/bin/claude"
 
     # Install Claude Code CLI
     if [ -x "$claude_bin" ]; then
@@ -143,8 +166,8 @@ main() {
     echo "Claude Code feature activated successfully!"
     echo "========================================="
     echo ""
-    echo "Configuration is stored in a Docker volume (claude-config)"
-    echo "and persists between container rebuilds."
+    echo "Configuration is bind-mounted from the host (~/.claude)"
+    echo "and persists across container rebuilds."
     echo ""
     echo "To authenticate, run 'claude' and follow the OAuth flow."
     echo ""
