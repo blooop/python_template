@@ -61,8 +61,9 @@ py312 = ["py312", "test"]
 py313 = ["py313", "test"]
 
 [tool.pixi.tasks]
-dev = "devpod up ."
-dev-restart = "devpod up . --recreate"
+dev-add-docker = "devpod provider list | grep -q docker || devpod provider add docker"
+dev = { cmd = "devpod up .", depends-on = ["dev-add-docker"] }
+dev-restart = { cmd = "devpod up . --recreate", depends-on = ["dev-add-docker"] }
 pre-commit = "pre-commit run -a"
 pre-commit-update = "pre-commit autoupdate"
 format = "ruff format ."
