@@ -62,9 +62,9 @@ py313 = ["py313", "test"]
 
 [tool.pixi.tasks]
 dev-add-docker = "devpod provider list | grep -q docker || devpod provider add docker"
-dev = { cmd = "devpod up . --ide none && ssh $(basename $(pwd) | tr -d '_-').devpod", depends-on = ["dev-add-docker"] }
+dev = { cmd = "devpod up . --ide none && devpod ssh .", depends-on = ["dev-add-docker"] }
 dev-vs = { cmd = "devpod up .", depends-on = ["dev-add-docker"] }
-dev-restart = { cmd = "devpod up . --recreate --ide none && ssh $(basename $(pwd) | tr -d '_-').devpod", depends-on = ["dev-add-docker"] }
+dev-restart = { cmd = "devpod up . --recreate --ide none && devpod ssh .", depends-on = ["dev-add-docker"] }
 dev-restart-vs = { cmd = "devpod up . --recreate", depends-on = ["dev-add-docker"] }
 pre-commit = "pre-commit run -a"
 pre-commit-update = "pre-commit autoupdate"
