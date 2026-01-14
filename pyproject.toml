@@ -13,12 +13,13 @@ Source = "https://github.com/blooop/python_template"
 Home = "https://github.com/blooop/python_template"
 
 [tool.pixi.workspace]
-channels = ["conda-forge"]
+channels = ["conda-forge", "https://prefix.dev/blooop"]
 platforms = ["linux-64"]
 
 [tool.pixi.dependencies]
 python = ">=3.10"
 shellcheck = ">=0.10.0,<0.11"
+devpod = "*"
 
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
@@ -28,7 +29,6 @@ python = "3.11.*"
 python = "3.12.*"
 [tool.pixi.feature.py313.dependencies]
 python = "3.13.*"
-
 
 [tool.pixi.pypi-dependencies]
 python_template = { path = ".", editable = true }
@@ -60,8 +60,12 @@ py311 = ["py311", "test"]
 py312 = ["py312", "test"]
 py313 = ["py313", "test"]
 
-
 [tool.pixi.tasks]
+dev-add-docker = "devpod provider list | grep -q docker || devpod provider add docker"
+dev = { cmd = "devpod up . --ide none && devpod ssh .", depends-on = ["dev-add-docker"] }
+dev-vs = { cmd = "devpod up .", depends-on = ["dev-add-docker"] }
+dev-restart = { cmd = "devpod up . --recreate --ide none && devpod ssh .", depends-on = ["dev-add-docker"] }
+dev-restart-vs = { cmd = "devpod up . --recreate", depends-on = ["dev-add-docker"] }
 pre-commit = "pre-commit run -a"
 pre-commit-update = "pre-commit autoupdate"
 format = "ruff format ."
