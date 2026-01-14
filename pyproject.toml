@@ -19,7 +19,7 @@ platforms = ["linux-64"]
 [tool.pixi.dependencies]
 python = ">=3.10"
 shellcheck = ">=0.10.0,<0.11"
-devpod = "*"
+devpod = ">=0.8.0,<0.9"
 
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
@@ -61,11 +61,11 @@ py312 = ["py312", "test"]
 py313 = ["py313", "test"]
 
 [tool.pixi.tasks]
-dev-add-docker = "devpod provider list | grep -q docker || devpod provider add docker"
-dev = { cmd = "devpod up . --ide none && devpod ssh .", depends-on = ["dev-add-docker"] }
-dev-vs = { cmd = "devpod up .", depends-on = ["dev-add-docker"] }
-dev-restart = { cmd = "devpod up . --recreate --ide none && devpod ssh .", depends-on = ["dev-add-docker"] }
-dev-restart-vs = { cmd = "devpod up . --recreate", depends-on = ["dev-add-docker"] }
+dev-add-docker = "devpod provider list | grep -qw docker || devpod provider add docker"
+dev = { cmd = "devpod up . --ide none && ssh pythontemplate.devpod", depends-on = ["dev-add-docker"] }
+dev-vs = { cmd = "devpod up . --ide vscode", depends-on = ["dev-add-docker"] }
+dev-restart = { cmd = "devpod up . --recreate --ide none && ssh pythontemplate.devpod", depends-on = ["dev-add-docker"] }
+dev-restart-vs = { cmd = "devpod up . --recreate --ide vscode", depends-on = ["dev-add-docker"] }
 pre-commit = "pre-commit run -a"
 pre-commit-update = "pre-commit autoupdate"
 format = "ruff format ."
