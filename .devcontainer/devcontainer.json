@@ -42,5 +42,5 @@
         "source=${localEnv:HOME}/.ssh/config,target=/home/vscode/.ssh/config,type=bind,ro",
         "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
     ],
-    "postCreateCommand": "sudo chown vscode .pixi && pixi install"
+    "postCreateCommand": "sudo chown vscode .pixi && pixi install && .devcontainer/claude-code/install-ralph.sh"
 }
