@@ -42,7 +42,7 @@ This template includes built-in support for [Claude Code](https://docs.claude.co
 
 - Installs pixi package manager
 - Sets up all project dependencies
-- Configures pre-commit hooks
+- Configures prek hooks
 - Prepares the development environment
 
 **Quick Start with Claude Code:**

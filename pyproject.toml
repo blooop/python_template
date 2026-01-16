@@ -41,7 +41,7 @@ test = [
   "hypothesis>=6.104.2,<=6.150.2",
   "ruff>=0.5.0,<=0.14.11",
   "coverage>=7.5.4,<=7.13.1",
-  "pre-commit<=4.5.1",
+  "prek>=0.2.28,<0.3.0",
   "ty>=0.0.8,<=0.0.8",
 ]
 
@@ -66,8 +66,8 @@ dev = { cmd = "devpod up . --ide none && ssh pythontemplate.devpod", depends-on 
 dev-vs = { cmd = "devpod up . --ide vscode", depends-on = ["dev-add-docker"] }
 dev-restart = { cmd = "devpod up . --recreate --ide none && ssh pythontemplate.devpod", depends-on = ["dev-add-docker"] }
 dev-restart-vs = { cmd = "devpod up . --recreate --ide vscode", depends-on = ["dev-add-docker"] }
-pre-commit = "pre-commit run -a"
-pre-commit-update = "pre-commit autoupdate"
+prek = "prek run -a"
+prek-update = "prek autoupdate"
 format = "ruff format ."
 check-clean-workspace = "git diff --exit-code"
 ruff-lint = "ruff check . --fix"
@@ -82,7 +82,7 @@ coverage-report = "coverage report -m"
 update-lock = "pixi update && git commit -a -m'update pixi.lock' || true"
 push = "git push"
 update-lock-push = { depends-on = ["update-lock", "push"] }
-fix = { depends-on = ["update-lock", "format", "ruff-lint", "pre-commit"] }
+fix = { depends-on = ["update-lock", "format", "ruff-lint", "prek"] }
 fix-commit-push = { depends-on = ["fix", "commit-format", "update-lock-push"] }
 ci-no-cover = { depends-on = ["style", "test"] }
 ci = { depends-on = [
