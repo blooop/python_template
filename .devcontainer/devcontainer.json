@@ -38,7 +38,8 @@
     "mounts": [
         "source=${localWorkspaceFolderBasename}-pixi,target=${containerWorkspaceFolder}/.pixi,type=volume",
         "source=${localEnv:HOME}/.ssh/known_hosts,target=/home/vscode/.ssh/known_hosts,type=bind,ro",
-        "source=${localEnv:HOME}/.ssh/config,target=/home/vscode/.ssh/config,type=bind,ro"
+        "source=${localEnv:HOME}/.ssh/config,target=/home/vscode/.ssh/config,type=bind,ro",
+        "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind"
     ],
     "postCreateCommand": "sudo chown vscode .pixi && pixi install"
 }
