@@ -42,7 +42,7 @@ test = [
   "ruff>=0.5.0,<=0.14.13",
   "coverage>=7.5.4,<=7.13.1",
   "prek>=0.2.28,<0.3.0",
-  "ty>=0.0.8,<=0.0.12",
+  "ty>=0.0.12,<=0.0.12",
 ]
 
 [build-system]
@@ -72,8 +72,8 @@ format = "ruff format ."
 check-clean-workspace = "git diff --exit-code"
 ruff-lint = "ruff check . --fix"
 pylint = "pylint --version && echo 'running pylint...' && pylint $(git ls-files '*.py')"
-ty = "ty check"
-lint = { depends-on = ["ruff-lint", "pylint", "ty"] }
+ty = "ty check --respect-ignore-files ."
+lint = { depends-on = ["ruff-lint", "ty", "pylint"] }
 style = { depends-on = ["format", "lint"] }
 commit-format = "git commit -a -m'autoformat code' || true"
 test = "pytest"
