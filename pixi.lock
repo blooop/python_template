@@ -887,7 +887,7 @@ packages:
 - pypi: ./
   name: python-template
   version: 0.2.0
-  sha256: a8f5f871d2f8c22508c3722a1274c22f96c03f14b6346405289a97f881921862
+  sha256: 783ff41bcf00039abf5abca23d747cff93291a2d51157b172f7a8f6e83d956ad
   requires_dist:
   - pylint>=3.2.5,<=4.0.4 ; extra == 'test'
   - pytest-cov>=4.1,<=7.0.0 ; extra == 'test'
@@ -896,7 +896,7 @@ packages:
   - ruff>=0.5.0,<=0.14.13 ; extra == 'test'
   - coverage>=7.5.4,<=7.13.1 ; extra == 'test'
   - prek>=0.2.28,<0.3.0 ; extra == 'test'
-  - ty>=0.0.8,<=0.0.12 ; extra == 'test'
+  - ty>=0.0.12,<=0.0.12 ; extra == 'test'
 - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.13-8_cp313.conda
   build_number: 8
   sha256: 210bffe7b121e651419cb196a2a63687b087497595c9be9d20ebe97dd06060a7
