@@ -2,7 +2,7 @@
 
 ## Project Setup
 
-This project uses **pixi** for environment and dependency management. All commands should be run from the project root (`/workspaces/pythontemplate`).
+This project uses **pixi** for environment and dependency management. All commands should be run from the project root.
 
 ```bash
 # Install dependencies (pixi handles everything)

@@ -281,7 +281,7 @@ This is a **Python project template** with the following structure:
 ## Existing Infrastructure
 - **Package manager**: pixi (conda-forge based)
 - **Testing**: pytest with coverage
-- **Linting**: ruff, pylint, ty
+- **Linting/typing**: ruff, pylint, ty (type checker)
 - **CI/CD**: GitHub Actions
 - **Dev environment**: devcontainer support
 
