@@ -11,6 +11,7 @@
 
 ## Completed
 - [x] Initial Ralph setup
+- [x] Add Ralph state files to .gitignore to prevent dirty repo state
 
 ## Notes
 - This is a template project - update this file with project-specific tasks after cloning
