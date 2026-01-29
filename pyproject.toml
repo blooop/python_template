@@ -20,6 +20,7 @@ platforms = ["linux-64"]
 python = ">=3.10"
 shellcheck = ">=0.10.0,<0.11"
 devpod = ">=0.8.0,<0.9"
+ralph-orchestrator = "*"
 
 [tool.pixi.feature.py310.dependencies]
 python = "3.10.*"
@@ -95,6 +96,7 @@ ci = { depends-on = [
 ] }
 ci-push = { depends-on = ["format", "ruff-lint", "update-lock", "ci", "push"] }
 clear-pixi = "rm -rf .pixi pixi.lock"
+ralph = "ralph"
 setup-git-merge-driver = "git config merge.ourslock.driver true"
 update-from-template-repo = "./scripts/update_from_template.sh"
 

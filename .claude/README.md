@@ -56,8 +56,49 @@ You can modify `hooks/SessionStart` to:
 - Configure environment variables
 - Set up external services
 
+## Ralph Orchestrator
+
+This project includes [ralph-orchestrator](https://github.com/mikeyobrien/ralph-orchestrator), an autonomous agent orchestrator for managing complex multi-step tasks.
+
+### Installation
+
+Ralph is installed as a pixi dependency. After running `pixi install`, it's available in the environment.
+
+### Basic Usage
+
+```bash
+# Initialize ralph (creates ralph.yml and PROMPT.md if not present)
+pixi run ralph init
+
+# Plan a task (creates a spec file)
+pixi run ralph plan "Implement feature X"
+
+# Run ralph with the current PROMPT.md
+pixi run ralph run
+
+# Check ralph version
+pixi run ralph --version
+```
+
+### Configuration Files
+
+- `ralph.yml` - Main configuration (event loop, hats, backends)
+- `PROMPT.md` - Task description for ralph to execute
+- `specs/` - Directory for task specifications
+
+### Customization
+
+Edit `ralph.yml` to customize:
+- `event_loop.max_iterations` - Maximum iterations before stopping
+- `event_loop.max_runtime_seconds` - Maximum runtime
+- `cli.backend` - AI backend (claude, gemini, codex, etc.)
+- `hats` - Define custom personas for multi-agent workflows
+
+See the [ralph-orchestrator documentation](https://github.com/mikeyobrien/ralph-orchestrator) for more details.
+
 ## Learn More
 
 - [Claude Code Documentation](https://docs.claude.com/claude-code)
 - [Pixi Documentation](https://pixi.sh)
+- [Ralph Orchestrator](https://github.com/mikeyobrien/ralph-orchestrator)
 - [Project README](../README.md)
