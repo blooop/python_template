@@ -25,6 +25,10 @@ updates:
         #try to group all third party library updates into a single pr
         patterns:
           - "*"
+  - package-ecosystem: "docker"
+    directory: "/.devcontainer"
+    schedule:
+      interval: "monthly"
   - package-ecosystem: github-actions
     directory: /
     schedule:
