@@ -101,9 +101,9 @@ else
     SETTINGS_URL="https://github.com/users/${OWNER}/packages/container/${ENCODED_PACKAGE}/settings"
 fi
 
-API_OUTPUT=$(gh api --method PATCH "$API_PATH" -f visibility=public 2>&1) && {
+if API_OUTPUT=$(gh api --method PATCH "$API_PATH" -f visibility=public 2>&1); then
     echo "GHCR package is now public."
-} || {
+else
     echo "Could not set package visibility automatically."
     echo "API response: $API_OUTPUT"
     echo ""
