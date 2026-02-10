@@ -57,21 +57,20 @@ source .claude/activate.sh
 
 See [.claude/README.md](.claude/README.md) for detailed information about the Claude Code configuration.
 
-# Devcontainer Prebuilt Image
+# Devcontainer
 
-This template includes a CI workflow (`.github/workflows/devcontainer.yml`) that automatically builds and pushes a devcontainer image to GitHub Container Registry (GHCR) whenever `.devcontainer/` files change on `main`.
+By default, the devcontainer builds locally from `.devcontainer/Dockerfile`. This works out of the box for all users, including forks and projects created from this template.
 
-The main `.devcontainer/devcontainer.json` references this prebuilt image to avoid slow local builds:
+## Switching to a prebuilt image (optional)
 
-```json
-"image": "ghcr.io/blooop/python_template/devcontainer:latest"
-```
+A CI workflow (`.github/workflows/devcontainer.yml`) automatically builds and pushes a devcontainer image to GHCR whenever `.devcontainer/` files change on `main`. To use it for faster startup:
 
-## GHCR Package Visibility
+1. Edit `.devcontainer/devcontainer.json`: comment out the `"build"` and `"features"` blocks, uncomment the `"image"` line
+2. Update the image reference to match your repo: `ghcr.io/<owner>/<repo>/devcontainer:latest`
+3. Push to `main` and wait for the CI workflow to complete
+4. **Make the GHCR package public** (see below) — GHCR packages are private by default and will fail with `MANIFEST_UNKNOWN` otherwise
 
-**GHCR packages are private by default.** After the first CI push, you must manually make the package public or users (and tools like DevPod) will get a `MANIFEST_UNKNOWN` error when trying to pull the image.
-
-### Making the package public
+### Making the GHCR package public
 
 **Option 1: GitHub Web UI**
 
@@ -89,10 +88,6 @@ gh auth refresh -s write:packages
 # Set the package to public
 gh api --method PATCH /user/packages/container/<repo>%2Fdevcontainer -f visibility=public
 ```
-
-## Falling back to local builds
-
-If the prebuilt image is unavailable, you can switch to local builds by editing `.devcontainer/devcontainer.json`: comment out the `"image"` line and uncomment the `"build"` and `"features"` blocks.
 
 # Github setup
 
