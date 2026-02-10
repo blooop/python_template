@@ -6,6 +6,14 @@ set -euo pipefail
 
 DEVCONTAINER_JSON=".devcontainer/devcontainer.json"
 
+# --- Check prerequisites ---
+if ! command -v gh >/dev/null 2>&1; then
+    echo "WARNING: GitHub CLI (gh) not found. Will skip making the package public." >&2
+    GH_AVAILABLE=false
+else
+    GH_AVAILABLE=true
+fi
+
 # --- Resolve GitHub owner/repo from git remote ---
 REMOTE_URL=$(git remote get-url origin 2>/dev/null) || {
     echo "ERROR: No git remote 'origin' found." >&2
@@ -25,7 +33,7 @@ echo "Repository: $REPO"
 echo "Image:      $IMAGE"
 
 # --- Check current state: look for an uncommented "image": line ---
-if grep -qP '^\s+"image"\s*:' "$DEVCONTAINER_JSON"; then
+if grep -q '^[[:space:]]*"image"[[:space:]]*:' "$DEVCONTAINER_JSON"; then
     echo "Already using a prebuilt image. Nothing to do."
     exit 0
 fi
@@ -67,6 +75,15 @@ echo "Attempting to make GHCR package public..."
 OWNER=$(echo "$REPO" | cut -d'/' -f1)
 PACKAGE_NAME=$(echo "$REPO" | cut -d'/' -f2)
 ENCODED_PACKAGE="${PACKAGE_NAME}%2Fdevcontainer"
+
+if ! $GH_AVAILABLE; then
+    echo "Skipping: gh CLI not available."
+    echo ""
+    echo "To make the package public, install gh and run:"
+    echo "  gh auth refresh -s write:packages"
+    echo "  gh api --method PATCH /user/packages/container/${ENCODED_PACKAGE} -f visibility=public"
+    exit 0
+fi
 
 # Determine if owner is an org or a user
 IS_ORG=false
