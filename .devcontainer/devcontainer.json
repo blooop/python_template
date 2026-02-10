@@ -1,23 +1,20 @@
 {
     "name": "python_template",
 
-    // Prebuilt image from GHCR (built by .github/workflows/devcontainer.yml)
-    // Features (including claude-code) are baked into this image.
-    "image": "ghcr.io/blooop/python_template/devcontainer:latest",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "features": {
+        "./claude-code": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/common-utils:2": {}
+    },
 
-    // To build locally instead of using the prebuilt image, comment out "image" above
-    // and uncomment the "build" and "features" blocks below:
-    // "build": {
-    //     "dockerfile": "Dockerfile",
-    //     "context": ".."
-    // },
-    // "features": {
-    //     "./claude-code": {}
-    //     "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-    //     "ghcr.io/devcontainers/features/common-utils:2": {},
-    //     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
-    //     "ghcr.io/jsburckhardt/devcontainer-features/codex:latest": {}
-    // },
+    // To use a prebuilt image instead of building locally (faster startup),
+    // comment out "build" and "features" above, uncomment "image" below,
+    // and ensure the GHCR package is public (see README).
+    // "image": "ghcr.io/blooop/python_template/devcontainer:latest",
 
     "initializeCommand": ".devcontainer/claude-code/init-host.sh",
     "customizations": {
