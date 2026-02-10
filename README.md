@@ -63,7 +63,15 @@ By default, the devcontainer builds locally from `.devcontainer/Dockerfile`. Thi
 
 ## Switching to a prebuilt image (optional)
 
-A CI workflow (`.github/workflows/devcontainer.yml`) automatically builds and pushes a devcontainer image to GHCR whenever `.devcontainer/` files change on `main`. To use it for faster startup:
+A CI workflow (`.github/workflows/devcontainer.yml`) automatically builds and pushes a devcontainer image to GHCR whenever `.devcontainer/` files change on `main`. The image is published as `ghcr.io/<owner>/<repo>/devcontainer:latest`, where `<owner>` is your GitHub username or organization and `<repo>` is the repository name (e.g. `ghcr.io/myuser/myproject/devcontainer:latest`).
+
+You can migrate automatically with:
+
+```bash
+pixi run dev-use-prebuilt
+```
+
+Or manually:
 
 1. Edit `.devcontainer/devcontainer.json`: comment out the `"build"` and `"features"` blocks, uncomment the `"image"` line
 2. Update the image reference to match your repo: `ghcr.io/<owner>/<repo>/devcontainer:latest`
@@ -75,7 +83,8 @@ A CI workflow (`.github/workflows/devcontainer.yml`) automatically builds and pu
 **Option 1: GitHub Web UI**
 
 1. Go to your repository's package settings:
-   `https://github.com/users/<username>/packages/container/<repo>%2Fdevcontainer/settings`
+   - Personal repos: `https://github.com/users/<username>/packages/container/<repo>%2Fdevcontainer/settings`
+   - Organization repos: `https://github.com/orgs/<org>/packages/container/<repo>%2Fdevcontainer/settings`
 2. Under "Danger Zone", click **Change visibility**
 3. Select **Public** and confirm
 
@@ -85,8 +94,11 @@ A CI workflow (`.github/workflows/devcontainer.yml`) automatically builds and pu
 # Ensure your token has the write:packages scope
 gh auth refresh -s write:packages
 
-# Set the package to public
+# For personal repos:
 gh api --method PATCH /user/packages/container/<repo>%2Fdevcontainer -f visibility=public
+
+# For organization repos:
+gh api --method PATCH /orgs/<org>/packages/container/<repo>%2Fdevcontainer -f visibility=public
 ```
 
 # Github setup

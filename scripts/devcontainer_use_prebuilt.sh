@@ -64,20 +64,35 @@ echo "Updated $DEVCONTAINER_JSON to use prebuilt image."
 echo ""
 echo "Attempting to make GHCR package public..."
 
+OWNER=$(echo "$REPO" | cut -d'/' -f1)
 PACKAGE_NAME=$(echo "$REPO" | cut -d'/' -f2)
 ENCODED_PACKAGE="${PACKAGE_NAME}%2Fdevcontainer"
 
-if gh api --method PATCH "/user/packages/container/${ENCODED_PACKAGE}" -f visibility=public >/dev/null 2>&1; then
+# Determine if owner is an org or a user
+IS_ORG=false
+if gh api "/orgs/${OWNER}" >/dev/null 2>&1; then
+    IS_ORG=true
+fi
+
+if $IS_ORG; then
+    API_PATH="/orgs/${OWNER}/packages/container/${ENCODED_PACKAGE}"
+    SETTINGS_URL="https://github.com/orgs/${OWNER}/packages/container/${ENCODED_PACKAGE}/settings"
+else
+    API_PATH="/user/packages/container/${ENCODED_PACKAGE}"
+    SETTINGS_URL="https://github.com/users/${OWNER}/packages/container/${ENCODED_PACKAGE}/settings"
+fi
+
+if gh api --method PATCH "$API_PATH" -f visibility=public >/dev/null 2>&1; then
     echo "GHCR package is now public."
 else
     echo "Could not set package visibility automatically."
     echo ""
     echo "To make the package public manually, either:"
     echo ""
-    echo "  1. Visit: https://github.com/users/$(echo "$REPO" | cut -d'/' -f1)/packages/container/${ENCODED_PACKAGE}/settings"
+    echo "  1. Visit: $SETTINGS_URL"
     echo "     -> Danger Zone -> Change visibility -> Public"
     echo ""
     echo "  2. Run:"
     echo "     gh auth refresh -s write:packages"
-    echo "     gh api --method PATCH /user/packages/container/${ENCODED_PACKAGE} -f visibility=public"
+    echo "     gh api --method PATCH $API_PATH -f visibility=public"
 fi
