@@ -99,6 +99,7 @@ ci-push = { depends-on = ["format", "ruff-lint", "update-lock", "ci", "push"] }
 clear-pixi = "rm -rf .pixi pixi.lock"
 setup-git-merge-driver = "git config merge.ourslock.driver true"
 update-from-template-repo = "./scripts/update_from_template.sh"
+dev-use-prebuilt = "./scripts/devcontainer_use_prebuilt.sh"
 
 [tool.pylint]
 extension-pkg-whitelist = ["numpy"]
