@@ -75,7 +75,7 @@ Or manually:
 
 1. Edit `.devcontainer/devcontainer.json`: comment out the `"build"` and `"features"` blocks, uncomment the `"image"` line
 2. Update the image reference to match your repo: `ghcr.io/<owner>/<repo>/devcontainer:latest`
-3. Push to `main` and wait for the CI workflow to complete
+3. Push to `main` and wait for the CI workflow to complete. For new repos or forks where the workflow hasn't run yet, you can trigger it manually from the Actions tab or via `gh workflow run devcontainer.yml`
 4. **Make the GHCR package public** (see below) — GHCR packages are private by default and will fail with `MANIFEST_UNKNOWN` otherwise
 
 ### Making the GHCR package public

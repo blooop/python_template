@@ -20,8 +20,8 @@ REMOTE_URL=$(git remote get-url origin 2>/dev/null) || {
     exit 1
 }
 
-# Handle ssh (git@github.com:owner/repo.git) and https URLs
-REPO=$(echo "$REMOTE_URL" | sed -E 's#(git@github\.com:|https://github\.com/)##; s/\.git$//')
+# Handle common GitHub remote URL formats
+REPO=$(echo "$REMOTE_URL" | sed -E 's#(ssh://git@github\.com/|git@github\.com:|https?://github\.com/|git://github\.com/)##; s/\.git$//')
 
 if [[ -z "$REPO" || "$REPO" != */* ]]; then
     echo "ERROR: Could not parse owner/repo from remote URL: $REMOTE_URL" >&2
@@ -40,7 +40,8 @@ fi
 
 # --- Replace the file using awk for reliable block manipulation ---
 awk -v image="$IMAGE" '
-    # Comment out uncommented "build" block (4-space indent open/close)
+    # Comment out uncommented "build" block (4-space indent open/close).
+    # NOTE: assumes no nested {} within these blocks.
     /^    "build": \{/ { in_build=1 }
     in_build {
         sub(/^    /, "    // ")
@@ -48,7 +49,8 @@ awk -v image="$IMAGE" '
         print; next
     }
 
-    # Comment out uncommented "features" block (4-space indent open/close)
+    # Comment out uncommented "features" block (4-space indent open/close).
+    # NOTE: assumes no nested {} within these blocks.
     /^    "features": \{/ { in_features=1 }
     in_features {
         sub(/^    /, "    // ")
@@ -99,10 +101,11 @@ else
     SETTINGS_URL="https://github.com/users/${OWNER}/packages/container/${ENCODED_PACKAGE}/settings"
 fi
 
-if gh api --method PATCH "$API_PATH" -f visibility=public >/dev/null 2>&1; then
+API_OUTPUT=$(gh api --method PATCH "$API_PATH" -f visibility=public 2>&1) && {
     echo "GHCR package is now public."
-else
+} || {
     echo "Could not set package visibility automatically."
+    echo "API response: $API_OUTPUT"
     echo ""
     echo "To make the package public manually, either:"
     echo ""
