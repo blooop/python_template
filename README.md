@@ -57,6 +57,43 @@ source .claude/activate.sh
 
 See [.claude/README.md](.claude/README.md) for detailed information about the Claude Code configuration.
 
+# Devcontainer Prebuilt Image
+
+This template includes a CI workflow (`.github/workflows/devcontainer.yml`) that automatically builds and pushes a devcontainer image to GitHub Container Registry (GHCR) whenever `.devcontainer/` files change on `main`.
+
+The main `.devcontainer/devcontainer.json` references this prebuilt image to avoid slow local builds:
+
+```json
+"image": "ghcr.io/blooop/python_template/devcontainer:latest"
+```
+
+## GHCR Package Visibility
+
+**GHCR packages are private by default.** After the first CI push, you must manually make the package public or users (and tools like DevPod) will get a `MANIFEST_UNKNOWN` error when trying to pull the image.
+
+### Making the package public
+
+**Option 1: GitHub Web UI**
+
+1. Go to your repository's package settings:
+   `https://github.com/users/<username>/packages/container/<repo>%2Fdevcontainer/settings`
+2. Under "Danger Zone", click **Change visibility**
+3. Select **Public** and confirm
+
+**Option 2: GitHub CLI**
+
+```bash
+# Ensure your token has the write:packages scope
+gh auth refresh -s write:packages
+
+# Set the package to public
+gh api --method PATCH /user/packages/container/<repo>%2Fdevcontainer -f visibility=public
+```
+
+## Falling back to local builds
+
+If the prebuilt image is unavailable, you can switch to local builds by editing `.devcontainer/devcontainer.json`: comment out the `"image"` line and uncomment the `"build"` and `"features"` blocks.
+
 # Github setup
 
 There are github workflows for CI, codecov and automated pypi publishing in `ci.yml` and `publish.yml`.
