@@ -1,0 +1,92 @@
+name: Sync from Template
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # every Monday at 9am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history needed for merge
+
+      - uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          cache: true
+
+      - name: Setup git merge driver for pixi.lock
+        run: git config merge.ourslock.driver true
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add template remote and fetch
+        run: |
+          git remote add template https://github.com/blooop/python_template.git
+          git fetch template main
+
+      - name: Check for changes
+        id: check
+        run: |
+          if git diff HEAD...template/main --quiet 2>/dev/null; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No changes from template."
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Template has new changes to merge."
+          fi
+
+      - name: Merge template changes
+        if: steps.check.outputs.has_changes == 'true'
+        id: merge
+        run: |
+          git checkout -B feature/update_from_template
+
+          # Real git merge — line-level 3-way merge across ALL files.
+          # Git remembers the merge base so conflicts only need resolving once.
+          if git merge template/main --allow-unrelated-histories -m 'feat: pull changes from remote template'; then
+            echo "conflicts=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "conflicts=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Regenerate pixi.lock
+        if: steps.check.outputs.has_changes == 'true' && steps.merge.outputs.conflicts == 'false'
+        run: |
+          git checkout --ours pixi.lock 2>/dev/null || true
+          pixi update
+          git add pixi.lock
+          git diff --cached --quiet || git commit -m 'chore: update pixi.lock after template merge'
+
+      - name: Push and create PR
+        if: steps.check.outputs.has_changes == 'true' && steps.merge.outputs.conflicts == 'false'
+        run: |
+          git push --force-with-lease -u origin feature/update_from_template
+
+          # Create PR if one doesn't already exist
+          EXISTING=$(gh pr list --head feature/update_from_template --state open --json number -q '.[0].number' || true)
+          if [ -z "$EXISTING" ]; then
+            gh pr create \
+              --title "feat: sync updates from template repo" \
+              --body "Automated pull of changes from the [template repository](https://github.com/blooop/python_template) using \`git merge\`."
+          else
+            echo "PR #$EXISTING already exists."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Warn on conflicts
+        if: steps.check.outputs.has_changes == 'true' && steps.merge.outputs.conflicts == 'true'
+        run: |
+          git merge --abort
+          echo "::warning::Template merge has conflicts. Run 'pixi run update-from-template-repo' locally to resolve them."
