@@ -100,6 +100,7 @@ clear-pixi = "rm -rf .pixi pixi.lock"
 setup-git-merge-driver = "git config merge.ourslock.driver true"
 update-from-template-repo = "./scripts/update_from_template.sh"
 dev-use-prebuilt = "./scripts/devcontainer_use_prebuilt.sh"
+dev-use-local = "./scripts/devcontainer_use_local.sh"
 
 [tool.pylint]
 extension-pkg-whitelist = ["numpy"]

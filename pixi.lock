@@ -1177,16 +1177,16 @@ packages:
 - pypi: ./
   name: python-template
   version: 0.2.0
-  sha256: 6d3e551e4f8b8f76a3e83c3f917fe60cc708faa31f68dbf04ddd84c0edef95e5
+  sha256: ec4ead2bc1d847e3ea1871e222dc27b3bd160c64249ca537c03f457e84df29e6
   requires_dist:
   - pylint>=3.2.5,<=4.0.4 ; extra == 'test'
   - pytest-cov>=4.1,<=7.0.0 ; extra == 'test'
   - pytest>=7.4,<=9.0.2 ; extra == 'test'
-  - hypothesis>=6.104.2,<=6.150.2 ; extra == 'test'
-  - ruff>=0.5.0,<=0.14.13 ; extra == 'test'
-  - coverage>=7.5.4,<=7.13.1 ; extra == 'test'
-  - prek>=0.2.28,<0.3.0 ; extra == 'test'
-  - ty>=0.0.12,<=0.0.12 ; extra == 'test'
+  - hypothesis>=6.104.2,<=6.151.5 ; extra == 'test'
+  - ruff>=0.5.0,<=0.15.0 ; extra == 'test'
+  - coverage>=7.5.4,<=7.13.4 ; extra == 'test'
+  - prek>=0.2.28,<0.4.0 ; extra == 'test'
+  - ty>=0.0.12,<=0.0.15 ; extra == 'test'
 - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.13-8_cp313.conda
   build_number: 8
   sha256: 210bffe7b121e651419cb196a2a63687b087497595c9be9d20ebe97dd06060a7

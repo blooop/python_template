@@ -59,47 +59,29 @@ See [.claude/README.md](.claude/README.md) for detailed information about the Cl
 
 # Devcontainer
 
-By default, the devcontainer builds locally from `.devcontainer/Dockerfile`. This works out of the box for all users, including forks and projects created from this template.
+The devcontainer has three states:
 
-## Switching to a prebuilt image (optional)
+| State | When | `image` | `build` | `features` |
+|---|---|---|---|---|
+| **Template prebuilt** (default) | Fresh clones, after rename | template URL | commented | active |
+| **Local build** | After `dev-use-local` | commented | active | active |
+| **Repo prebuilt** | After `dev-use-prebuilt` | repo URL | commented | commented |
 
-A CI workflow (`.github/workflows/devcontainer.yml`) automatically builds and pushes a devcontainer image to GHCR whenever `.devcontainer/` files change on `main`. The image is published as `ghcr.io/<owner>/<repo>/devcontainer:latest`, where `<owner>` is your GitHub username or organization and `<repo>` is the repository name (e.g. `ghcr.io/myuser/myproject/devcontainer:latest`).
+By default, the devcontainer uses a prebuilt image from the template repository (`ghcr.io/blooop/python_template/devcontainer:latest`) for fast startup. This works immediately for new repos created from this template — no CI build needed.
 
-You can migrate automatically with:
+To switch to building locally from `.devcontainer/Dockerfile` (e.g. after customizing the Dockerfile):
+
+```bash
+pixi run dev-use-local
+```
+
+To switch to this repo's own prebuilt image (built by CI on each push to `main`):
 
 ```bash
 pixi run dev-use-prebuilt
 ```
 
-Or manually:
-
-1. Edit `.devcontainer/devcontainer.json`: comment out the `"build"` and `"features"` blocks, uncomment the `"image"` line
-2. Update the image reference to match your repo: `ghcr.io/<owner>/<repo>/devcontainer:latest`
-3. Push to `main` and wait for the CI workflow to complete. For new repos or forks where the workflow hasn't run yet, you can trigger it manually from the Actions tab or via `gh workflow run devcontainer.yml`
-4. **Make the GHCR package public** (see below) — GHCR packages are private by default and will fail with `MANIFEST_UNKNOWN` otherwise
-
-### Making the GHCR package public
-
-**Option 1: GitHub Web UI**
-
-1. Go to your repository's package settings:
-   - Personal repos: `https://github.com/users/<username>/packages/container/<repo>%2Fdevcontainer/settings`
-   - Organization repos: `https://github.com/orgs/<org>/packages/container/<repo>%2Fdevcontainer/settings`
-2. Under "Danger Zone", click **Change visibility**
-3. Select **Public** and confirm
-
-**Option 2: GitHub CLI**
-
-```bash
-# Ensure your token has the write:packages scope
-gh auth refresh -s write:packages
-
-# For personal repos:
-gh api --method PATCH /user/packages/container/<repo>%2Fdevcontainer -f visibility=public
-
-# For organization repos:
-gh api --method PATCH /orgs/<org>/packages/container/<repo>%2Fdevcontainer -f visibility=public
-```
+This detects the repo from git remote, updates `devcontainer.json` to use `ghcr.io/<owner>/<repo>/devcontainer:latest`, and attempts to make the GHCR package public. See the script output for manual steps if automatic visibility fails.
 
 # Github setup
 
