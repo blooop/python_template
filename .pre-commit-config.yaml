@@ -48,11 +48,14 @@ repos:
       # Run the formatter.
       - id: ruff-format
         types_or: [ python, pyi ]
-  # Shell script linter
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+  # Shell script linter (uses shellcheck from pixi)
+  - repo: local
     hooks:
       - id: shellcheck
+        name: shellcheck
+        language: system
+        entry: pixi run shellcheck
+        types: [shell]
 
   # Checks for spelling mistakes
   - repo: https://github.com/codespell-project/codespell
