@@ -883,7 +883,7 @@ packages:
 - pypi: ./
   name: python-template
   version: 0.2.0
-  sha256: 3c39f0339b9f9a48257dbbcd88fe4a65363187b4ad866ac1f353cfce4144b443
+  sha256: acd5064f3b5d5b49096fa258d515a3d9d1eeb600f8d84fa08720b886965ee68e
   requires_dist:
   - pylint>=3.2.5,<=4.0.5 ; extra == 'test'
   - pytest-cov>=4.1,<=7.0.0 ; extra == 'test'
