@@ -1,9 +1,21 @@
 {
     "name": "python_template",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": ".."
+
+    // Uses the template's prebuilt image by default for fast startup.
+    // To build locally: pixi run dev-use-local
+    // To use this repo's own prebuilt image: pixi run dev-use-prebuilt
+    // "build": {
+    //     "dockerfile": "Dockerfile",
+    //     "context": ".."
+    // },
+    "image": "ghcr.io/blooop/python_template/devcontainer:latest",
+
+    "features": {
+        "./claude-code": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/common-utils:2": {}
     },
+
     "initializeCommand": ".devcontainer/claude-code/init-host.sh",
     "customizations": {
         "vscode": {
@@ -14,17 +26,10 @@
                 "jjjermiah.pixi-vscode",
                 "charliermarsh.ruff",
                 "tamasfe.even-better-toml",
-                "mhutchie.git-graph"
-              ]
+                "mhutchie.git-graph",
+                "anthropic.claude-code"
+            ]
         }
-    },
-	"features": {
-		"./claude-code": {}
-
-        // "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-		// "ghcr.io/devcontainers/features/common-utils:2": {},
-		// "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
-		// "ghcr.io/jsburckhardt/devcontainer-features/codex:latest": {}
     },
     "runArgs": [
         "--network=host"
@@ -34,13 +39,13 @@
         "XDG_CONFIG_HOME": "/home/vscode/.config",
         "XDG_CACHE_HOME": "/home/vscode/.cache",
         "XDG_DATA_HOME": "/home/vscode/.local/share",
-        "SSH_AUTH_SOCK": "/ssh-agent"
+        "SSH_AUTH_SOCK": "/home/vscode/.ssh/agent.sock"
     },
     "mounts": [
         "source=${localWorkspaceFolderBasename}-pixi,target=${containerWorkspaceFolder}/.pixi,type=volume",
-        "source=${localEnv:HOME}/.ssh/known_hosts,target=/home/vscode/.ssh/known_hosts,type=bind,ro",
-        "source=${localEnv:HOME}/.ssh/config,target=/home/vscode/.ssh/config,type=bind,ro",
-        "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
+        "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind",
+        "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
+        "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
     ],
     "postCreateCommand": "sudo chown vscode .pixi && pixi install"
 }

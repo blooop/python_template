@@ -57,6 +57,32 @@ source .claude/activate.sh
 
 See [.claude/README.md](.claude/README.md) for detailed information about the Claude Code configuration.
 
+# Devcontainer
+
+The devcontainer has three states:
+
+| State | When | `image` | `build` | `features` |
+|---|---|---|---|---|
+| **Template prebuilt** (default) | Fresh clones, after rename | template URL | commented | active |
+| **Local build** | After `dev-use-local` | commented | active | active |
+| **Repo prebuilt** | After `dev-use-prebuilt` | repo URL | commented | commented |
+
+By default, the devcontainer uses a prebuilt image from the template repository (`ghcr.io/blooop/python_template/devcontainer:latest`) for fast startup. This works immediately for new repos created from this template — no CI build needed.
+
+To switch to building locally from `.devcontainer/Dockerfile` (e.g. after customizing the Dockerfile):
+
+```bash
+pixi run dev-use-local
+```
+
+To switch to this repo's own prebuilt image (built by CI on each push to `main`):
+
+```bash
+pixi run dev-use-prebuilt
+```
+
+This detects the repo from git remote, updates `devcontainer.json` to use `ghcr.io/<owner>/<repo>/devcontainer:latest`, and attempts to make the GHCR package public. See the script output for manual steps if automatic visibility fails.
+
 # Github setup
 
 There are github workflows for CI, codecov and automated pypi publishing in `ci.yml` and `publish.yml`.

@@ -36,14 +36,14 @@ python_template = { path = ".", editable = true }
 
 [project.optional-dependencies]
 test = [
-  "pylint>=3.2.5,<=4.0.4",
+  "pylint>=3.2.5,<=4.0.5",
   "pytest-cov>=4.1,<=7.0.0",
   "pytest>=7.4,<=9.0.2",
-  "hypothesis>=6.104.2,<=6.150.2",
-  "ruff>=0.5.0,<=0.14.13",
-  "coverage>=7.5.4,<=7.13.1",
-  "prek>=0.2.28,<0.3.0",
-  "ty>=0.0.8,<=0.0.12",
+  "hypothesis>=6.104.2,<=6.151.9",
+  "ruff>=0.5.0,<=0.15.4",
+  "coverage>=7.5.4,<=7.13.4",
+  "prek>=0.2.28,<0.4.0",
+  "ty>=0.0.12,<=0.0.19",
 ]
 
 [build-system]
@@ -73,8 +73,8 @@ format = "ruff format ."
 check-clean-workspace = "git diff --exit-code"
 ruff-lint = "ruff check . --fix"
 pylint = "pylint --version && echo 'running pylint...' && pylint $(git ls-files '*.py')"
-ty = "ty check"
-lint = { depends-on = ["ruff-lint", "pylint", "ty"] }
+ty = "ty check --respect-ignore-files ."
+lint = { depends-on = ["ruff-lint", "ty", "pylint"] }
 style = { depends-on = ["format", "lint"] }
 commit-format = "git commit -a -m'autoformat code' || true"
 test = "pytest"
@@ -99,6 +99,8 @@ clear-pixi = "rm -rf .pixi pixi.lock"
 ralph = "ralph"
 setup-git-merge-driver = "git config merge.ourslock.driver true"
 update-from-template-repo = "./scripts/update_from_template.sh"
+dev-use-prebuilt = "./scripts/devcontainer_use_prebuilt.sh"
+dev-use-local = "./scripts/devcontainer_use_local.sh"
 
 [tool.pylint]
 extension-pkg-whitelist = ["numpy"]
