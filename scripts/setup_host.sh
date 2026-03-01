@@ -1,4 +1,5 @@
 #! /bin/bash
+set -eo pipefail
 
 #Sets up docker, nvidia docker git-lfs and rocker which are used to clone and setup docker containers
 

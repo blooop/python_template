@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 
 # Claude Code CLI Local Feature Install Script
 # Installs Claude Code via pixi and sets up configuration directories

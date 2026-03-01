@@ -2,7 +2,7 @@
 # SessionStart hook for Claude Code online environment
 # This script sets up the Python development environment using pixi
 
-set -e
+set -eo pipefail
 
 echo "🚀 Setting up Python Template environment..."
 
