@@ -48,13 +48,13 @@ repos:
       # Run the formatter.
       - id: ruff-format
         types_or: [ python, pyi ]
-  # Shell script linter (tries system shellcheck, falls back to pixi)
+  # Shell script linter
   - repo: local
     hooks:
       - id: shellcheck
         name: shellcheck
         language: system
-        entry: bash -c 'if command -v shellcheck >/dev/null 2>&1; then shellcheck "$@"; else pixi run shellcheck "$@"; fi' --
+        entry: pixi run shellcheck
         types: [shell]
 
   # Checks for spelling mistakes
