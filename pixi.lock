@@ -869,7 +869,7 @@ packages:
 - pypi: ./
   name: python-template
   version: 0.2.0
-  sha256: 4997f71d269c76c6e3d34032ac72271ee1b90081b676234dc566cde3703115e3
+  sha256: 1e1a1d877a1ffc127c1d1f26d4dccd381d3eced410da065edf6c27f22efda062
   requires_dist:
   - pylint>=3.2.5,<=4.0.4 ; extra == 'test'
   - pytest-cov>=4.1,<=7.0.0 ; extra == 'test'
