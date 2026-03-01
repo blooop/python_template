@@ -69,6 +69,7 @@ dev-vs = { cmd = "devpod up . --ide vscode", depends-on = ["dev-add-docker"] }
 dev-restart = { cmd = "devpod up . --recreate --ide none && ssh pythontemplate.devpod", depends-on = ["dev-add-docker"] }
 dev-restart-vs = { cmd = "devpod up . --recreate --ide vscode", depends-on = ["dev-add-docker"] }
 prek = "prek run -a"
+prek-install = "prek install"
 prek-update = "prek autoupdate"
 format = "ruff format ."
 check-clean-workspace = "git diff --exit-code"
