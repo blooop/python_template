@@ -10,11 +10,10 @@
     // },
     "image": "ghcr.io/blooop/python_template/devcontainer:latest",
 
-    "features": {
-        "./claude-code": {},
-        // "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        // "ghcr.io/devcontainers/features/common-utils:2": {}
-    },
+    // Features baked into prebuilt image by CI; uncommented for local builds
+    // "features": {
+    //     "./claude-code": {}
+    // },
 
     "initializeCommand": ".devcontainer/claude-code/init-host.sh",
     "customizations": {
@@ -47,5 +46,6 @@
         "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind",
         "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
     ],
-    "postCreateCommand": "sudo chown vscode .pixi && git config merge.ours.driver true && pixi install"
+    "onCreateCommand": "[ -f .pixi/.gitignore ] || cp -a /home/vscode/.pixi-prewarm/. .pixi/ || true",
+    "postCreateCommand": "git config merge.ours.driver true && pixi install"
 }

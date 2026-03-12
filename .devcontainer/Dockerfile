@@ -20,3 +20,16 @@ RUN mkdir -p /home/vscode/.ssh && chmod 700 /home/vscode/.ssh
 
 # Create .config/gh directory for GitHub CLI config mounts
 RUN mkdir -p /home/vscode/.config/gh
+
+# Pre-install pixi global packages for dotfiles (devpod profile)
+# Makes dotfiles install.sh near-instant since packages are already present
+COPY --chown=vscode .devcontainer/pixi-global-devpod.toml /home/vscode/.pixi/manifests/pixi-global.toml
+RUN pixi global sync
+
+# Pre-warm project pixi environment for faster cold starts
+COPY --chown=vscode pyproject.toml pixi.lock /tmp/pixi-prewarm/
+RUN mkdir -p /tmp/pixi-prewarm/python_template \
+    && touch /tmp/pixi-prewarm/python_template/__init__.py \
+    && cd /tmp/pixi-prewarm \
+    && pixi install \
+    && mv .pixi /home/vscode/.pixi-prewarm

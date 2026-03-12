@@ -6,11 +6,15 @@ on:
     paths:
       - ".devcontainer/**"
       - ".github/workflows/devcontainer.yml"
+      - "pyproject.toml"
+      - "pixi.lock"
   pull_request:
     branches: ["main"]
     paths:
       - ".devcontainer/**"
       - ".github/workflows/devcontainer.yml"
+      - "pyproject.toml"
+      - "pixi.lock"
   workflow_dispatch:
 
 permissions:
