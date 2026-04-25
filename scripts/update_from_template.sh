@@ -1,10 +1,10 @@
 #! /bin/bash
 set -eo pipefail
 
-TEMPLATE_URL="https://github.com/blooop/python_template.git"
-BRANCH="feature/update_from_template"
+TEMPLATE_URL="${TEMPLATE_URL:-https://github.com/blooop/python_template.git}"
+BRANCH="${BRANCH:-feature/update_from_template}"
 
-git config --global pull.rebase false
+git config pull.rebase false
 git remote remove template 2>/dev/null || true
 git remote add template "$TEMPLATE_URL"
 git fetch --all
