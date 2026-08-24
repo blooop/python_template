@@ -228,8 +228,8 @@ This happens because Claude tracks setup completion **per-workspace**, not globa
 **Quick fix:**
 ```bash
 # On your HOST machine:
-# Set the onboarding flag for your workspace
-jq '.projects["/workspaces/pythontemplate"].projectOnboardingSeenCount = 1' ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
+# Set the onboarding flag for your workspace (`devpod list` shows its name)
+jq '.projects["/workspaces/<workspace>"].projectOnboardingSeenCount = 1' ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
 mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 
 # Also ensure themeMode is set (if needed)
@@ -239,9 +239,9 @@ mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 # Then restart `claude` in the container -- the mount is live, so no rebuild is needed
 ```
 
-**Root cause:** Claude tracks setup wizard completion per-workspace in `.claude.json` under `.projects["/workspaces/pythontemplate"].projectOnboardingSeenCount`. When this is `0`, the setup wizard runs. Set it to `1` to mark setup as complete.
+**Root cause:** Claude tracks setup wizard completion per-workspace in `.claude.json` under `.projects["/workspaces/<workspace>"].projectOnboardingSeenCount`. When this is `0`, the setup wizard runs. Set it to `1` to mark setup as complete.
 
-**For future workspaces:** Replace `/workspaces/pythontemplate` with your actual container workspace path.
+**Finding `<workspace>`:** it is the devpod workspace name, and the container mounts the repo at `/workspaces/<workspace>`. `devpod list` shows the name, and `dl --ls` shows it for workspaces devlaunch created.
 
 ## Modifying Configuration
 

@@ -52,17 +52,19 @@ Claude tracks setup completion per-workspace in `.claude.json`:
 ```json
 {
   "projects": {
-    "/workspaces/pythontemplate": {
+    "/workspaces/<workspace>": {
       "projectOnboardingSeenCount": 0  // ← This!
     }
   }
 }
 ```
 
+`<workspace>` is the devpod workspace name -- `devpod list` shows it, and `dl --ls` shows it for workspaces devlaunch created.
+
 **Solution:**
 ```bash
 # On HOST machine, set a high count to skip wizard
-jq '.projects["/workspaces/pythontemplate"].projectOnboardingSeenCount = 999' \
+jq '.projects["/workspaces/<workspace>"].projectOnboardingSeenCount = 999' \
   ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
 mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 
@@ -77,8 +79,8 @@ mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 
 **Verification:**
 ```bash
-# In container
-devpod ssh pythontemplate
+# From the host, shell into the container
+pixi run dev
 claude  # Should go straight to interactive mode without wizard
 ```
 
@@ -138,7 +140,7 @@ Two different issues:
 
 1. **Verify the mount in the container:**
    ```bash
-   devpod ssh pythontemplate
+   pixi run dev
    mount | grep claude
    ```
 
@@ -232,7 +234,7 @@ echo "what is 2+2" | claude --print
 
 ```bash
 # On HOST
-cat ~/.claude/.claude.json | jq '.projects["/workspaces/pythontemplate"]'
+cat ~/.claude/.claude.json | jq '.projects["/workspaces/<workspace>"]'
 ```
 
 Look for:
@@ -286,7 +288,7 @@ Contains account info, feature flags, and per-workspace state. Key fields:
   "userID": "...",
   "themeMode": "dark",
   "projects": {
-    "/workspaces/pythontemplate": {
+    "/workspaces/<workspace>": {
       "projectOnboardingSeenCount": 999,
       "hasTrustDialogAccepted": false,
       ...
