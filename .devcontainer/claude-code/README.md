@@ -6,14 +6,14 @@ A local Dev Container Feature that installs the Claude Code CLI and bind-mounts 
 
 This feature combines two capabilities:
 
-1. **CLI Installation**: Installs the `@anthropic-ai/claude-code` npm package globally
+1. **CLI Installation**: `install.sh` runs `pixi global install --channel https://prefix.dev/blooop claude-shim`, and downloads pixi to `/usr/local/bin/pixi` first if the base image does not already carry it
 2. **Configuration Mounting**: Bind-mounts your host machine's `~/.claude` directory into the container, read-write
 
 ## What Gets Installed
 
-- **Claude Code CLI**: The `claude` command becomes available in your container
+- **Claude Code CLI**: The `claude` command becomes available in your container. It comes from the `claude-shim` package on the `blooop` prefix.dev channel, so that channel is a dependency of this feature. `install.sh` checks only that the pixi trampoline exists -- the binary it points at is downloaded on the first `claude` run.
 - **VS Code Extension**: Automatically installs the `anthropic.claude-code` extension
-- **Configuration Directories**: Creates `.claude/` structure in the container
+- **Configuration Directories**: `install.sh` creates the `.claude/` tree, though it does so while the image is built -- at runtime the host's bind mount covers it
 
 ## What Gets Mounted
 
@@ -71,8 +71,6 @@ CI publishes that image, and the `devcontainer.json` every branch launches from 
 
 Declaring the feature a second time there makes the devcontainer spec build a derived image on the first launch of every branch, reinstalling what the pulled image already carries.
 
-**Note**: Node.js is automatically installed via the `installsAfter` dependency mechanism - you don't need to explicitly add it to your features.
-
 ### Authentication Uses Host Credentials, Not Host Networking
 
 No OAuth flow runs inside the container. You authenticate `claude` once on the host, and the `~/.claude` bind mount plus `CLAUDE_CONFIG_DIR=/home/vscode/.claude` point the container at those same credentials, refresh tokens included. Every container of every branch reads them, and nothing has to reach the host's network to do it.
@@ -109,7 +107,7 @@ With VS Code:
 
 ### Host Machine
 
-You should have these files/directories on your host machine (they will be created if they don't exist):
+`init-host.sh` runs on the host as the `initializeCommand` and creates `~/.claude` if it is missing. Nothing creates the contents below; they are optional, and the container starts without them:
 
 ```bash
 ~/.claude/
@@ -120,7 +118,7 @@ You should have these files/directories on your host machine (they will be creat
 └── hooks/              # Optional: event hooks
 ```
 
-**Note**: If these don't exist on your host, the container will still build successfully, but you may see mount warnings. You can create them with:
+**Note**: The mount is the `~/.claude` directory itself, so a missing subdirectory or file costs nothing at launch. To create them anyway:
 
 ```bash
 mkdir -p ~/.claude/{agents,commands,hooks}
@@ -130,7 +128,7 @@ touch ~/.claude/settings.json
 
 ### Container
 
-- **Node.js 18+** and **npm** are automatically installed via the `installsAfter` dependency mechanism
+- **pixi**, which the `Dockerfile` installs to `/usr/local/bin/pixi`; `install.sh` downloads it there itself if it is missing
 - No manual configuration required
 
 ## Assumptions
@@ -163,12 +161,14 @@ touch ~/.claude/settings.json
 
 ### Testing Install Script
 
-You can test the install script standalone:
+You can test the install script standalone, from inside the container:
 
 ```bash
 cd .devcontainer/claude-code
 sudo ./install.sh
 ```
+
+It resolves its target from `_REMOTE_USER` and `_REMOTE_USER_HOME` and falls back to `vscode`, so on a host with no `/home/vscode` it exits with an error rather than doing anything.
 
 ### Debugging
 
@@ -196,12 +196,12 @@ The write test uses a throwaway file on purpose. Do not test the mount by append
 ### How It Works
 
 1. **Already Authenticated on Host**: If you have Claude Code set up on your host machine, credentials are automatically shared with the container
-2. **First-Time Setup**: Run `claude` in the container and follow the OAuth flow:
-   - The CLI will provide an OAuth URL
-   - Open the URL in your browser (on your host machine)
+2. **First-Time Setup**: Run `claude` on the **host** and follow the OAuth flow there:
+   - The CLI provides an OAuth URL
+   - Open the URL in your browser
    - Click "Authorize"
-   - The callback should complete automatically, or you may need to paste the code
-   - Credentials are saved to `~/.claude/.credentials.json` on your host
+   - The callback completes, because the CLI and the browser are both on the host
+   - Credentials are saved to `~/.claude/.credentials.json`, and the mount carries them into every container
 
 ### OAuth Callback Behavior
 
@@ -214,7 +214,7 @@ The OAuth flow opens a local callback server. In containers, this can behave dif
 
 **"Paste code here" prompt hangs forever:**
 - Check that `~/.claude/.credentials.json` exists on your host with proper permissions (`600`)
-- Try authenticating on your host machine first, then rebuild the container
+- Try authenticating on your host machine first, then restart `claude` in the container -- the mount is live, so no rebuild is needed
 - If the callback fails, look for the authorization code in the URL after clicking "Authorize"
 
 **Credentials not persisting:**
@@ -236,8 +236,7 @@ mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 jq '. + {themeMode: "dark"}' ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
 mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 
-# Rebuild container
-devpod up . --recreate
+# Then restart `claude` in the container -- the mount is live, so no rebuild is needed
 ```
 
 **Root cause:** Claude tracks setup wizard completion per-workspace in `.claude.json` under `.projects["/workspaces/pythontemplate"].projectOnboardingSeenCount`. When this is `0`, the setup wizard runs. Set it to `1` to mark setup as complete.
@@ -310,7 +309,7 @@ Users would then reference it as:
 }
 ```
 
-Instead of `"./claude-code": {}`
+Instead of `"../claude-code": {}`
 
 ## Optional: Future Composition
 
@@ -397,9 +396,9 @@ Then use both:
 2. **Authenticate on host**, mount credentials, remove runArgs (no OAuth needed in container)
 3. **Manually install extensions** after container starts
 
-### Mount warnings about missing files
+### `~/.claude` missing on the host
 
-**Solution**: Create the directories on your host:
+**Solution**: The `initializeCommand` (`init-host.sh`) creates it before the container starts. To lay out the rest yourself:
 
 ```bash
 mkdir -p ~/.claude/{agents,commands,hooks}
@@ -415,7 +414,7 @@ The whole `~/.claude` directory is bind-mounted read-write as one mount, so noth
 - **`.claude.json`**: account info, user ID, per-workspace onboarding and trust state
 - **`CLAUDE.md`**, **`settings.json`**, **`agents/`**, **`commands/`**, **`hooks/`**: the host's copies, in place
 
-`install.sh` creates the two credential files with `600` permissions when they do not already exist, which keeps other users on the host out. It does not restrict code running inside the container, which runs as the user those files belong to.
+`install.sh` runs when the image is built, so the two `600` credential files it creates live in the image and the bind mount covers them at runtime. Permissions on the host's real files are whatever the host set -- see Issue 6 in TROUBLESHOOTING.md. Nothing here restricts code running inside the container, which runs as the user those files belong to.
 
 ### The Consequence Worth Naming
 `hooks/` and `settings.json` are executed by Claude Code wherever it runs. Code in the container that writes there gets its content executed on the **host**, the next time Claude Code starts there -- a `postCreateCommand` from a repository you have not read reaches that far. The container also carries the live Claude credentials and, under `dl`, a `GH_TOKEN` with repo and workflow scopes, so it is not a confidentiality boundary either.

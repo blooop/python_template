@@ -2,7 +2,9 @@
 
 ## Quick Reference
 
-### Files That Must Exist on Host
+### Files on the Host
+
+`init-host.sh` creates `~/.claude` as the `initializeCommand`. Everything inside it is optional, and only `.credentials.json` is load-bearing for an authenticated `claude`.
 
 ```bash
 ~/.claude/               # one bind mount, read-write, shared with every container
@@ -34,7 +36,7 @@ Every one of these is writable from inside the container, and a write lands on t
 }
 ```
 
-The `./claude-code` feature is declared in `.devcontainer/ci/devcontainer.json`, the config CI builds the image from, so there is no `features` block here -- and no `runArgs` either.
+The `../claude-code` feature is declared in `.devcontainer/ci/devcontainer.json`, the config CI builds the image from, so there is no `features` block here -- and no `runArgs` either.
 
 ## Common Issues and Solutions
 
@@ -68,8 +70,7 @@ mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 jq '. + {themeMode: "dark"}' ~/.claude/.claude.json > ~/.claude/.claude.json.tmp
 mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 
-# Rebuild container
-devpod up . --recreate
+# Then restart `claude` in the container -- the mount is live, so no rebuild is needed
 ```
 
 **Why 999?** The field is `projectOnboardingSeenCount` - it increments each time you see the wizard. Setting it high tells Claude "this workspace has been onboarded many times, skip the wizard."
@@ -250,7 +251,7 @@ docker inspect <container-id> | jq '.[0].HostConfig.NetworkMode'
 
 When setting up a new workspace:
 
-- [ ] `./claude-code` feature declared in `.devcontainer/ci/devcontainer.json`, so the published image carries it
+- [ ] `../claude-code` feature declared in `.devcontainer/ci/devcontainer.json`, so the published image carries it
 - [ ] `claude` authenticated on the host, so no OAuth flow runs in the container
 - [ ] Environment variables added (CLAUDE_CONFIG_DIR, XDG_*)
 - [ ] Files exist on host: `.credentials.json`, `.claude.json`
