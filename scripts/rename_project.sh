@@ -19,7 +19,12 @@ ESCAPED_1_STRIPPED=$(escape_sed "$STRIPPED_1")
 # stripped name can never contain an underscore, so it can never manufacture a fresh
 # `python_template`. The other order breaks on a new name that itself contains
 # `pythontemplate` -- `pythontemplate_fork` would come out as `pythontemplatefork_fork`.
-find . \( -type d -name .git -prune \) -o \( -type f -not -name 'tasks.json' -not -name 'update_from_template.sh' -not -name 'pixi.lock' -not -path './.devcontainer/devcontainer.json' \) -print0 | xargs -0 sed -i -e "s/pythontemplate/$ESCAPED_1_STRIPPED/g" -e "s/python_template/$ESCAPED_1/g"
+# The first and last expressions mask the prebuilt image reference: it is the one
+# `python_template` in the tree that names a real published package rather than this project,
+# so renaming it yields a ghcr.io URL that 404s. It appears in the root README and in
+# .devcontainer/claude-code/{README,TROUBLESHOOTING}.md, which must otherwise be renamed
+# normally, so the string is protected instead of the files.
+find . \( -type d -name .git -prune \) -o \( -type f -not -name 'tasks.json' -not -name 'update_from_template.sh' -not -name 'pixi.lock' -not -path './.devcontainer/devcontainer.json' \) -print0 | xargs -0 sed -i -e 's|blooop/python_template/devcontainer|@@IMGREF@@|g' -e "s/pythontemplate/$ESCAPED_1_STRIPPED/g" -e "s/python_template/$ESCAPED_1/g" -e 's|@@IMGREF@@|blooop/python_template/devcontainer|g'
 
 # update just the name field in devcontainer.json
 sed -i "s/\"name\": \"python_template\"/\"name\": \"$ESCAPED_1\"/" .devcontainer/devcontainer.json
