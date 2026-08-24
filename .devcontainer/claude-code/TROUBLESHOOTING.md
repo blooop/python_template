@@ -19,19 +19,20 @@
 
 ```json
 {
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {},
-    "./claude-code": {}
-  },
-  "runArgs": ["--network=host"],
+  "image": "ghcr.io/blooop/python_template/devcontainer:latest",
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
     "XDG_CONFIG_HOME": "/home/vscode/.config",
     "XDG_CACHE_HOME": "/home/vscode/.cache",
     "XDG_DATA_HOME": "/home/vscode/.local/share"
-  }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+  ]
 }
 ```
+
+The `./claude-code` feature is declared in `.devcontainer/ci/devcontainer.json`, the config CI builds the image from, so there is no `features` block here -- and no `runArgs` either.
 
 ## Common Issues and Solutions
 
@@ -89,6 +90,9 @@ claude  # Should go straight to interactive mode without wizard
 OAuth callback server runs inside container on a random port (e.g., `localhost:35673`). Your browser tries to connect to that port on the HOST, but the container's port isn't accessible.
 
 **Solution:**
+Authenticate on the host, where the browser can reach the callback port, and let the container read the resulting credentials through the `~/.claude` bind mount. No OAuth flow then runs in the container at all.
+
+**Alternative, if you want the login to happen inside the container:**
 Add `--network=host` to devcontainer.json:
 
 ```json
@@ -99,11 +103,8 @@ Add `--network=host` to devcontainer.json:
 
 This makes the container share the host's network namespace, so ports inside the container are accessible from the host browser.
 
-**Trade-off:**
-Using `--network=host` gives the container full network access and may prevent VS Code extensions from installing (known issue: [#9212](https://github.com/microsoft/vscode-remote-release/issues/9212)).
-
-**Workaround if you can't use --network=host:**
-Authenticate on your host machine first, then credentials are shared via mounts.
+**What that costs:**
+VS Code extensions stop installing (known issue: [#9212](https://github.com/microsoft/vscode-remote-release/issues/9212)), the container gets full access to the host's network, and every port the container binds becomes a host port -- so two branch containers of the same repo collide on the first port they share.
 
 ### Issue 3: `claude --print` Works But Interactive `claude` Asks for Login
 
@@ -247,16 +248,15 @@ Look for:
 ```bash
 # On HOST
 docker inspect <container-id> | jq '.[0].HostConfig.NetworkMode'
-# Should show: "host"
+# "host" only if you opted into --network=host; otherwise the default bridge network
 ```
 
 ## Complete Setup Checklist
 
 When setting up a new workspace:
 
-- [ ] Node.js feature added to devcontainer.json
-- [ ] `./claude-code` feature added
-- [ ] `runArgs: ["--network=host"]` added
+- [ ] `./claude-code` feature declared in `.devcontainer/ci/devcontainer.json`, so the published image carries it
+- [ ] `claude` authenticated on the host, so no OAuth flow runs in the container
 - [ ] Environment variables added (CLAUDE_CONFIG_DIR, XDG_*)
 - [ ] Files exist on host: `.credentials.json`, `.claude.json`
 - [ ] File permissions: `chmod 600` on sensitive files

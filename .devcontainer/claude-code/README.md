@@ -52,45 +52,58 @@ These files **must be writable** to enable:
 
 ### Setup
 
-Add this feature to your `devcontainer.json`:
+The feature is declared where the image is built, in `.devcontainer/ci/devcontainer.json`:
 
 ```json
 {
-  "features": {
-    "./claude-code": {}
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "."
   },
-  "runArgs": ["--network=host"]
+  "features": {
+    "../claude-code": {}
+  }
 }
 ```
 
+CI publishes that image, and the `devcontainer.json` every branch launches from pulls it and declares neither `features` nor `runArgs`:
+
+```json
+{
+  "image": "ghcr.io/blooop/python_template/devcontainer:latest",
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
+  ]
+}
+```
+
+Declaring the feature a second time there makes the devcontainer spec build a derived image on the first launch of every branch, reinstalling what the pulled image already carries.
+
 **Note**: Node.js is automatically installed via the `installsAfter` dependency mechanism - you don't need to explicitly add it to your features.
 
-### Why `--network=host` is Required
+### Authentication Uses Host Credentials, Not Host Networking
 
-The `runArgs: ["--network=host"]` is **critical for OAuth authentication** to work in containers.
+No OAuth flow runs inside the container. You authenticate `claude` once on the host, and the `~/.claude` bind mount plus `CLAUDE_CONFIG_DIR=/home/vscode/.claude` point the container at those same credentials, refresh tokens included. Every container of every branch reads them, and nothing has to reach the host's network to do it.
 
-**How OAuth works:**
-1. You run `claude` → starts OAuth flow
-2. Opens browser → you click "Authorize"
-3. Browser redirects to `http://localhost:<random-port>/callback`
-4. OAuth server running in container receives the callback
+### Why You Might Opt Into `--network=host`
 
-**The problem without host networking:**
-- OAuth server runs on port X **inside container**
-- Browser callback goes to port X on **host's localhost**
-- ❌ Container's port is not accessible from host → **callback fails**
+The one thing the bind mount does not give you is the interactive OAuth login *from inside* the container, which needs host networking to complete:
 
-**The solution:**
-- With `--network=host`, container shares host's network namespace
-- OAuth server on port X in container = port X on host
-- ✅ Browser callback reaches the container → **authentication succeeds**
+1. You run `claude` → it starts a callback server on a random port in the container
+2. Your browser opens the authorize page, you click "Authorize", and it redirects to `http://localhost:<that-port>/callback`
+3. On the default bridge network that port belongs to the container, not the host, so the browser cannot reach it and the CLI sits at "Paste code here"
 
-**Security note:** Host networking gives the container full network access. Only use in trusted environments.
+With `--network=host` the container shares the host's network namespace, port X in the container *is* port X on the host, and the callback lands.
 
-**Alternative (if host networking is not acceptable):**
-- Authenticate Claude on your host machine first
-- Credentials in `~/.claude/.credentials.json` are automatically shared with container
-- No OAuth flow needed in container
+Two costs come with it, and they are why this template does not set it:
+
+- **VS Code extensions stop installing**: [vscode-remote-release#9212](https://github.com/microsoft/vscode-remote-release/issues/9212), covered again under Troubleshooting below.
+- **Every port the container binds becomes a host port.** A container per branch is the reason these repos are launched with `dl`, and two branch containers on the host's network namespace collide on the first port they share.
+
+Host networking also gives the container full access to the host's network, so only use it in environments you trust.
 
 ### Build the Container
 
@@ -377,23 +390,15 @@ Then use both:
 
 **Problem**: Browser clicks "Authorize" but container never receives the callback.
 
-**Solution**: Add `--network=host` to your `devcontainer.json`:
-
-```json
-{
-  "runArgs": ["--network=host"]
-}
-```
-
-See "Why `--network=host` is Required" section above for details.
+**Solution**: Run `claude` on the host instead and let the container read the credentials it writes to `~/.claude`. If you need the login to happen inside the container, add `--network=host` and accept its costs -- see "Why You Might Opt Into `--network=host`" above.
 
 ### Interactive `claude` asks for authentication but `claude --print` works
 
 **Problem**: You're authenticated (credentials mounted) but interactive mode prompts for login.
 
-**Root cause**: Without `--network=host`, OAuth callbacks can't reach the container.
+**Root cause**: Interactive mode tried to start an OAuth flow, which means it found no usable credentials under `CLAUDE_CONFIG_DIR`.
 
-**Solution**: Add `"runArgs": ["--network=host"]` to devcontainer.json.
+**Solution**: Authenticate on the host so `~/.claude/.credentials.json` holds a live token, and check that `~/.claude` is actually mounted and `CLAUDE_CONFIG_DIR` points at it.
 
 ### VS Code extensions don't install with `--network=host`
 
