@@ -5,15 +5,17 @@
 ### Files That Must Exist on Host
 
 ```bash
-~/.claude/
-├── .credentials.json    # OAuth tokens (must be writable)
-├── .claude.json         # Account info, setup state (must be writable)
-├── CLAUDE.md           # Global instructions (read-only)
-├── settings.json       # Settings (read-only)
-├── agents/             # Custom agents (read-only)
-├── commands/           # Custom commands (read-only)
-└── hooks/              # Event hooks (read-only)
+~/.claude/               # one bind mount, read-write, shared with every container
+├── .credentials.json    # OAuth tokens
+├── .claude.json         # Account info, setup state
+├── CLAUDE.md            # Global instructions
+├── settings.json        # Settings
+├── agents/              # Custom agents
+├── commands/            # Custom commands
+└── hooks/               # Event hooks
 ```
+
+Every one of these is writable from inside the container, and a write lands on the host. See "Security Considerations" below for what follows from that.
 
 ### Critical Configuration in devcontainer.json
 
@@ -129,20 +131,19 @@ Two different issues:
 - Have to authenticate again
 
 **Root Cause:**
-`.credentials.json` or `.claude.json` is not mounted, or is mounted read-only.
+`~/.claude` is not mounted, so `claude` wrote its credentials into the container's own filesystem and they went away with the container.
 
 **Solution:**
 
-1. **Verify mounts in container:**
+1. **Verify the mount in the container:**
    ```bash
    devpod ssh pythontemplate
    mount | grep claude
    ```
 
-   Should show:
+   Should show one bind of the directory, read-write:
    ```
-   /dev/... on /home/vscode/.claude/.credentials.json type ext4 (rw,...)
-   /dev/... on /home/vscode/.claude/.claude.json type ext4 (rw,...)
+   /dev/... on /home/vscode/.claude type ext4 (rw,...)
    ```
 
 2. **Check files exist on host:**
@@ -150,26 +151,20 @@ Two different issues:
    ls -la ~/.claude/.credentials.json ~/.claude/.claude.json
    ```
 
-3. **Verify files are writable (not ro):**
-   The mounts MUST be read-write for auth to persist.
+3. **Check the mount is read-write:**
+   A refresh has to persist, so `rw` in the line above is load-bearing. The feature declares no `ro` flag, so a read-only mount means something outside it added one.
 
-### Issue 5: "Read-only file system" Error
+### Issue 5: A Container Changed the Host's Claude Configuration
 
 **Symptoms:**
-- Error when trying to write to `~/.claude/CLAUDE.md` or similar
-- Operations fail with "Read-only file system"
+- `~/.claude/CLAUDE.md`, `settings.json` or a file under `hooks/` differs from what you left on the host
+- A hook or setting you did not write takes effect when you start `claude` on the host
 
-**Expected Behavior:**
-This is intentional! Security files are mounted read-only:
-- `CLAUDE.md`, `settings.json`, `agents/`, `commands/`, `hooks/` → Read-only
-
-**Why?**
-Prevents prompt injection attacks that could modify your Claude configuration.
+**Root Cause:**
+Not a malfunction. `~/.claude` is one read-write bind of the whole directory, so the host and every container share it and anything in a container can write any of it. `hooks/` and `settings.json` are executed by Claude Code wherever it runs, so what a container leaves there runs on the host next time.
 
 **Solution:**
-Edit these files on your HOST machine, then restart/rebuild the container.
-
-Only `.credentials.json` and `.claude.json` are read-write (needed for auth and state).
+Restore the files from wherever your configuration lives -- keeping `~/.claude` under version control is what makes a change like this visible and reversible. Then look at what put it there: a `postCreateCommand`, a hook, or an agent session in the container all reach that far.
 
 ### Issue 6: File Permission Errors (600 vs 664)
 
@@ -204,7 +199,7 @@ cat ~/.claude/.claude.json | jq '.oauthAccount.emailAddress'
 ```bash
 # In container
 mount | grep claude
-# Should show all mounted files/directories
+# Should show one bind of /home/vscode/.claude, rw
 
 ls -la ~/.claude/
 # Should show files from your host
@@ -332,20 +327,16 @@ watch -n 1 'stat ~/.claude/.claude.json | grep Modify'
 
 ## Security Considerations
 
-### What's Protected (Read-Only)
-- `CLAUDE.md` - Prevents prompt injection
-- `settings.json` - Prevents config tampering
-- `agents/`, `commands/`, `hooks/` - Prevents malicious modifications
+### What the Mount Actually Is
+One read-write bind of the whole `~/.claude` directory. No `ro` flag, no per-file mounts. `.credentials.json`, `.claude.json`, `CLAUDE.md`, `settings.json`, `agents/`, `commands/` and `hooks/` are all writable from inside the container, and a write lands on the host's copy.
 
-### What's Writable (Necessary Risk)
-- `.credentials.json` - OAuth tokens (necessary for auth)
-- `.claude.json` - Setup state (necessary to skip wizard)
+### The Consequence
+`hooks/` and `settings.json` are executed by Claude Code wherever it runs, so content a container writes there runs on the **host** the next time Claude Code starts there -- a `postCreateCommand` from a repository nobody read is enough. The container also holds the live Claude credentials from the mount and, under `dl`, a `GH_TOKEN` carrying repo and workflow scopes. It is not a confidentiality or integrity boundary.
 
-### Mitigation
-- Only use in trusted repositories
-- Files have `600` permissions (user-only access)
-- Container user isolation
-- Regular review of `.claude.json` changes
+### Why It Is Accepted
+Sharing one config directory is what makes credentials work across the host and every branch container: the access token is short-lived, so a read-only or copied arrangement drifts into a re-auth, and a container that cannot write `.claude.json` re-onboards on every launch. The isolation buys reproducible dependencies and non-colliding concurrent work, not safety against hostile code. `blooop/wayfinder`'s `.devcontainer/devcontainer.json` writes out the same threat model above its `mounts` block.
+
+Keeping `~/.claude` under version control is the one practical measure here: it makes a change from a container visible instead of silent.
 
 ## Known Limitations
 

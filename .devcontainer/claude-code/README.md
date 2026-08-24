@@ -1,13 +1,13 @@
 # Claude Code CLI - Local Dev Container Feature
 
-A local Dev Container Feature that installs the Claude Code CLI and configures it with read-only mounts to your host machine's Claude configuration.
+A local Dev Container Feature that installs the Claude Code CLI and bind-mounts your host machine's Claude configuration directory into the container.
 
 ## What This Feature Does
 
 This feature combines two capabilities:
 
 1. **CLI Installation**: Installs the `@anthropic-ai/claude-code` npm package globally
-2. **Configuration Mounting**: Mounts your host machine's Claude configuration files into the container as read-only binds
+2. **Configuration Mounting**: Bind-mounts your host machine's `~/.claude` directory into the container, read-write
 
 ## What Gets Installed
 
@@ -17,36 +17,25 @@ This feature combines two capabilities:
 
 ## What Gets Mounted
 
-The following files and directories from your **host machine** are mounted into the container:
+One mount, and it is the whole directory:
 
-### Read-Only Mounts (Security-Protected)
-- `~/.claude/CLAUDE.md` → Global project instructions
-- `~/.claude/settings.json` → Claude CLI settings
-- `~/.claude/agents/` → Custom agent configurations
-- `~/.claude/commands/` → Command definitions
-- `~/.claude/hooks/` → Event-driven shell hooks
+```
+source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind
+```
 
-These are **read-only** (`ro` flag) to prevent:
-- Prompt injection attacks that could modify your Claude configuration
-- Accidental modification of shared configuration from within containers
-- Security issues related to hook manipulation
+There is no `ro` flag and no per-file mount. The host and every container of every branch share one `~/.claude`, read-write, so anything running in a container can modify any of it -- `CLAUDE.md`, `settings.json`, `agents/`, `commands/` and `hooks/` included.
 
-### Read-Write Mounts (Authentication & State)
-- `~/.claude/.credentials.json` → OAuth access/refresh tokens
-- `~/.claude/.claude.json` → Account info, user ID, workspace setup tracking
+### What That Means
 
-These files **must be writable** to enable:
-- OAuth authentication flow and token refresh
-- Workspace setup state tracking (`projectOnboardingSeenCount`)
-- Session continuity across container rebuilds
+`hooks/` and `settings.json` are executed by Claude Code wherever it runs. Content a container writes there therefore runs on the **host**, the next time Claude Code starts on the host, and a `postCreateCommand` from a repository you have not read is enough to put it there.
 
-### Why These Must Be Writable
+It is not a confidentiality boundary either: code running in the container holds the live Claude credentials the mount carries, and under `dl` a `GH_TOKEN` with repo and workflow scopes.
 
-**`.credentials.json`**: OAuth tokens need to be refreshed periodically. Claude writes updated tokens to this file.
+### Why It Is Still One Read-Write Directory
 
-**`.claude.json`**: Claude tracks per-workspace setup state here. The `projectOnboardingSeenCount` field must be writable so Claude doesn't show the setup wizard on every launch.
+Sharing the directory is what makes credentials work across the host and every branch container. `.credentials.json` has to be writable because the access token is short-lived and a refresh has to persist -- a read-only or copied arrangement drifts into a re-auth. `.claude.json` has to be writable because Claude tracks per-workspace onboarding and trust state there, so a container that cannot write it re-onboards on every launch.
 
-⚠️ **Security Note**: These files contain sensitive data and are mounted read-write by necessity. They are only accessible by the container user and stored with `600` permissions. Only use this feature with trusted repositories.
+Splitting the rest of the directory into separate read-only binds is possible and is not what this feature does today. What the container buys as it stands is reproducible dependencies and non-colliding concurrent work, not safety against hostile code. `blooop/wayfinder`'s `.devcontainer/devcontainer.json` states the same threat model in the comment above its `mounts` block.
 
 ## Usage
 
@@ -193,10 +182,14 @@ Check mounted files:
 ls -la ~/.claude/
 ```
 
-Verify mounts are read-only:
+Verify the config directory is mounted, writable, and pointed at:
 ```bash
-echo "test" >> ~/.claude/CLAUDE.md  # Should fail with "Read-only file system"
+env | grep CLAUDE_CONFIG_DIR          # /home/vscode/.claude
+mount | grep /home/vscode/.claude     # one bind, rw
+touch ~/.claude/.mount-check && rm ~/.claude/.mount-check && echo writable
 ```
+
+The write test uses a throwaway file on purpose. Do not test the mount by appending to `CLAUDE.md`, `settings.json` or anything under `hooks/`: the mount is read-write, so the write lands on the host's real configuration and is loaded into every later Claude Code session.
 
 ## Authentication
 
@@ -253,14 +246,9 @@ devpod up . --recreate
 
 ## Modifying Configuration
 
-Configuration files (except credentials) are read-only. You **cannot** modify Claude settings from within the container.
+The container writes to the same `~/.claude` as the host, so an edit made in either place is an edit to the one shared configuration.
 
-To change configuration:
-
-1. Edit files on your **host machine**: `~/.claude/settings.json`, `~/.claude/CLAUDE.md`, etc.
-2. Restart or rebuild the container to see changes
-
-This is by design for security (prevents prompt injection attacks).
+Editing from the **host** is still the better habit: `~/.claude/settings.json`, `~/.claude/CLAUDE.md` and the rest are yours across every branch container, and a change made on the host is one you meant to make. The mount is live, so restarting `claude` picks up a change -- no rebuild needed.
 
 ## What Would Change Before Publishing to GHCR
 
@@ -420,33 +408,27 @@ touch ~/.claude/CLAUDE.md ~/.claude/settings.json
 
 ## Security Notes
 
-This implementation makes conscious security trade-offs to enable OAuth authentication and persistent setup state:
+The whole `~/.claude` directory is bind-mounted read-write as one mount, so nothing in it is held back from the container.
 
-### What's Protected (Read-Only Mounts)
-- **CLAUDE.md**: Prevents prompt injection attacks that could modify your global instructions
-- **settings.json**: Prevents config tampering
-- **agents/**, **commands/**, **hooks/**: Prevents malicious code execution through modified hooks
+### What Code in the Container Can Read and Write
+- **`.credentials.json`**: the live OAuth access and refresh tokens
+- **`.claude.json`**: account info, user ID, per-workspace onboarding and trust state
+- **`CLAUDE.md`**, **`settings.json`**, **`agents/`**, **`commands/`**, **`hooks/`**: the host's copies, in place
 
-### What's Writable (Necessary Trade-off)
-- **`.credentials.json`**: OAuth tokens must be writable for token refresh to work
-- **`.claude.json`**: Workspace state must be writable to persist `projectOnboardingSeenCount` and other setup tracking
+`install.sh` creates the two credential files with `600` permissions when they do not already exist, which keeps other users on the host out. It does not restrict code running inside the container, which runs as the user those files belong to.
 
-### Security Mitigations
-- Files have `600` permissions (user-only access)
-- Only use this feature in **trusted repositories**
-- Container user isolation provides some protection
-- Writable files are limited to authentication/state only
-- All configuration and code execution files remain read-only
+### The Consequence Worth Naming
+`hooks/` and `settings.json` are executed by Claude Code wherever it runs. Code in the container that writes there gets its content executed on the **host**, the next time Claude Code starts there -- a `postCreateCommand` from a repository you have not read reaches that far. The container also carries the live Claude credentials and, under `dl`, a `GH_TOKEN` with repo and workflow scopes, so it is not a confidentiality boundary either.
 
-### Known Risks
-- A malicious process in the container could exfiltrate OAuth tokens from `.credentials.json`
-- A malicious process could modify workspace state in `.claude.json`
-- **Recommendation**: Only use in repositories you trust, as you would with any dev container configuration
+### Why It Is Accepted
+One shared config directory is what makes auth work across the host and every branch container without a re-auth, and it is why a container never re-onboards. That is the trade; the isolation buys reproducible dependencies and non-colliding concurrent work, not protection from hostile code. `blooop/wayfinder`'s `.devcontainer/devcontainer.json` writes out the same threat model above its `mounts` block. Treat a repository you launch this way as code you are running with your own credentials, because that is what it is.
+
+Whether the non-credential paths should become read-only binds is an open question, not a settled one.
 
 See related security discussions:
 - [anthropics/claude-code#4478](https://github.com/anthropics/claude-code/issues/4478)
 - [anthropics/claude-code#2350](https://github.com/anthropics/claude-code/issues/2350)
-- Original read-only approach: [PR #25](https://github.com/anthropics/devcontainer-features/pull/25)
+- Per-file read-only approach this feature does not implement: [PR #25](https://github.com/anthropics/devcontainer-features/pull/25)
 
 ## Reference
 
