@@ -6,7 +6,7 @@ This project uses a devcontainer with pixi for environment management.
 
 ### Available Tools
 
-- **GitHub CLI (`gh`)**: Available via `pixi run gh` or directly if using a login shell. Authentication arrives as `GH_TOKEN`, which `dl` forwards into every workspace it starts, taking it from `GH_TOKEN`, `GITHUB_TOKEN` or `gh auth token` -- whichever answers first. The container used to mount the host's `~/.config/gh` instead, which never worked: `gh` keeps its token in the system keyring, so the mounted `hosts.yml` carried no `oauth_token`. If the container was opened by something other than `dl` -- a plain `devpod up`, or VS Code's Reopen in Container -- it has no `gh` login and you have to export `GH_TOKEN` yourself.
+- **GitHub CLI (`gh`)**: Available via `pixi run gh` or directly if using a login shell. The container mounts the host's `~/.config/gh`, so if you are authenticated on the host, that authentication is shared -- including in a container opened without `dl`, such as a plain `devpod up` or VS Code's Reopen in Container. Under `dl` there is also a forwarded `GH_TOKEN` (taken from `GH_TOKEN`, `GITHUB_TOKEN` or `gh auth token`, whichever answers first), and that takes precedence over the mounted `hosts.yml`.
 
 ### Running Commands
 
