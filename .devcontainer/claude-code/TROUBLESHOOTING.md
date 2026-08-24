@@ -80,7 +80,7 @@ mv ~/.claude/.claude.json.tmp ~/.claude/.claude.json
 **Verification:**
 ```bash
 # From the host, shell into the container
-pixi run dev
+devpod ssh <workspace>
 claude  # Should go straight to interactive mode without wizard
 ```
 
@@ -140,7 +140,9 @@ Two different issues:
 
 1. **Verify the mount in the container:**
    ```bash
-   pixi run dev
+   # From the host, shell into the container (`devpod list` shows `<workspace>`,
+   # `dl --ls` for workspaces devlaunch created)
+   devpod ssh <workspace>
    mount | grep claude
    ```
 
