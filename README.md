@@ -32,7 +32,7 @@ There are two methods of using this project.
 1. Use github to use this project as a template
 2. Clone the project and run, `scripts/update_from_template.sh` and then run the `scripts/rename_project.sh` to rename the project.
 
-If you want to use docker you may want to run the `scripts/setup_host.sh` script.  It will set up docker and nvidia-docker (assuming you are on ubuntu22.04).
+If you want to use docker you may want to run the `scripts/setup_host.sh` script.  It will set up docker and the NVIDIA Container Toolkit (tested on ubuntu 22.04/24.04/26.04).
 
 If you are using pixi, look at the available tasks in pyproject.toml  If you are new to pixi follow the instructions on the pixi [website](https://prefix.dev/)
 
